@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+    <!-- ==================== الصفحات الرئيسية (الجزء العلوي في الموقع) ==================== -->
+    <url>
+        <loc>https://demoreps.com/</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/services</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/portfolio</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/about</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/contact</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- ==================== صفحة الكتالوج الرئيسية (مودبورد) ==================== -->
+    <url>
+        <loc>https://demoreps.com/catalog-moodboard</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- ==================== صفحات الكتالوج (تفاصيل المواد) ==================== -->
+    <url>
+        <loc>https://demoreps.com/catalog/paint</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/tiles</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/lighting</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/parquet</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/gypsum</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/curtains</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/wood</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/aluminum</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/catalog/marble</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- ==================== المسارات الإضافية للكتالوج (لتجنب الـ 404 وتحسين SEO) ==================== -->
+    <url>
+        <loc>https://demoreps.com/components/catalog/PaintPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/TilesPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/LightingPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/ParquetPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/GypsumPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/CurtainsPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/WoodPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/AluminumPage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://demoreps.com/components/catalog/MarblePage</loc>
+        <lastmod>2026-03-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <!-- ==================== ملاحظة: الصفحات الديناميكية ==================== -->
+    <!-- 
+        ملاحظة مهمة: صفحات المشاريع الفردية (/project/:id) يتم إنشاؤها ديناميكياً من قاعدة البيانات.
+        من الأفضل إنشاء sitemap ديناميكي (باستخدام Node.js أو أداة مثل react-router-sitemap) لإدراج هذه الروابط تلقائياً.
+        هذا الملف الثابت سيُظهر لجوجل الصفحات الرئيسية فقط، لكن الصفحات الديناميكية (مثل /project/abc123) لن تكون موجودة هنا.
+        لإضافة الصفحات الديناميكية، يُنصح بإنشاء endpoint في الخلفية (مثل /api/sitemap) يقوم بجلب جميع المشاريع من Firestore وبناء الـ sitemap ديناميكياً.
+    -->
+    
+    <!-- 
+    ==================== الصفحات المحظورة (لا تريد أن يصل إليها جوجل) ==================== 
+    الصفحات التالية لن تُضاف في sitemap لأنها صفحات خاصة أو إدارية:
+    - /login
+    - /admin/*
+    - أي مسار يبدأ بـ /admin/
+    -->
+    
+</urlset>

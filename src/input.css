@@ -1,0 +1,38 @@
+/* استيراد قاعدة Tailwind (البديل عن base) */
+@import "tailwindcss/preflight";
+
+/* استيراد الـ components */
+@import "tailwindcss/components";
+
+/* استيراد الـ utilities */
+@import "tailwindcss/utilities";
+
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+
+.input-field {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-field:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  outline: none;
+}
+
+textarea.input-field {
+  resize: none;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}

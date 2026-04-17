@@ -1,43 +1,170 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  
+  <!-- عنوان الموقع في التبويب - متطابق تماماً مع طلبك -->
+  <title>DEMORE | The Design and More</title>
+  
+  <!-- أيقونة الموقع (favicon) - استخدام الصورة المحددة -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  
+  <!-- Viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#d97706" />
+  
+  <!-- إعدادات SEO - تم تعديل الوصف ليكون متوافقاً مع العلامة التجارية -->
+  <meta name="description" content="DEMORE | The Design and More - متخصصون في التصميم الداخلي والديكور، نخلق مساحات تعبر عنك حيث يلتقي الإبداع بالراحة." />
+  <meta name="keywords" content="ديكور, تصميم داخلي, ديمور, DEMORE, The Design and More, ديكور منازل, ديكور شقق, ديكور فلل, تصميم مطابخ, تصميم غرف نوم, ديكور مكاتب, interior design, home decor" />
+  <meta name="author" content="DEMORE | The Design and More" />
+  
+  <!-- ========== Open Graph Tags (للمعاينة على واتساب، فيسبوك، تليجرام) ========== -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="DEMORE | The Design and More" />
+  <meta property="og:description" content="DEMORE | The Design and More - نخلق مساحات تعبر عنك... حيث يلتقي الإبداع بالراحة." />
+  
+  <!-- 🔴 هام: هذا هو رابط الصورة التي ستظهر عند المشاركة - تم تعديله لاستخدام favicon.png 🔴 -->
+  <meta property="og:image" content="https://demoreps.com/favicon.png" />
+  
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:url" content="https://demoreps.com" />
+  <meta property="og:locale" content="ar_SA" />
+  <meta property="og:site_name" content="DEMORE | The Design and More" />
+  
+  <!-- ========== Twitter Card (للتويتر) ========== -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="DEMORE | The Design and More" />
+  <meta name="twitter:description" content="DEMORE | The Design and More - نخلق مساحات تعبر عنك... حيث يلتقي الإبداع بالراحة." />
+  <meta name="twitter:image" content="https://demoreps.com/favicon.png" />
+  <meta name="twitter:site" content="@demore" />
+  
+  <!-- ========== إضافات تحسين المعاينة على واتساب ========== -->
+  <meta property="og:image:alt" content="DEMORE | The Design and More - تصميم داخلي راقي" />
+  <meta name="format-detection" content="telephone=no" />
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+  <!-- خطوط عربية -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+  <!-- خطوط إنجليزية -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+  <!-- CSS داخلي -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'El Messiri', 'Noto Naskh Arabic', 'Montserrat', sans-serif;
+      direction: rtl;
+      text-align: right;
+      background-color: #f9fafb;
+      color: #1f2937;
+      line-height: 1.6;
+    }
+    
+    #root {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* تحسينات للعربية */
+    .arabic-text {
+      font-family: 'El Messiri', 'Noto Naskh Arabic', sans-serif;
+      letter-spacing: 0;
+    }
+    
+    .english-text {
+      font-family: 'Montserrat', 'Poppins', sans-serif;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Loader أثناء تحميل React */
+    #root:empty::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      z-index: 9999;
+    }
+    
+    #root:empty::after {
+      content: "";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border: 3px solid #d97706;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 10000;
+    }
+    
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- رسالة للمستخدمين الذين لديهم JavaScript معطل -->
+  <noscript>
+    <div style="text-align: center; padding: 50px 20px; background: #fef3c7; color: #92400e; min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+      <h1 style="font-family: 'El Messiri', sans-serif; font-size: 2rem; margin-bottom: 20px; color: #92400e;">
+        عذراً، JavaScript غير مفعل
+      </h1>
+      <p style="font-size: 1.2rem; max-width: 600px; margin-bottom: 30px; color: #78350f;">
+        يحتاج موقع DEMORE | The Design and More إلى JavaScript للعمل بشكل صحيح.<br>
+        يرجى تفعيل JavaScript في إعدادات متصفحك ثم إعادة تحميل الصفحة.
+      </p>
+      <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <h2 style="font-family: 'Montserrat', sans-serif; color: #d97706; margin-bottom: 15px;">كيف تفعل JavaScript:</h2>
+        <ul style="text-align: right; list-style: none; padding: 0;">
+          <li style="margin-bottom: 10px; padding-right: 20px;">✅ <strong>Chrome:</strong> الإعدادات → الخصوصية والأمان → إعدادات الموقع → JavaScript</li>
+          <li style="margin-bottom: 10px; padding-right: 20px;">✅ <strong>Firefox:</strong> الإعدادات → الخصوصية والأمان → السماح لمواقع الويب بتنفيذ JavaScript</li>
+          <li style="margin-bottom: 10px; padding-right: 20px;">✅ <strong>Safari:</strong> التفضيلات → الأمان → تمكين JavaScript</li>
+          <li style="padding-right: 20px;">✅ <strong>Edge:</strong> الإعدادات → ملفات تعريف الارتباط وأذونات الموقع → JavaScript</li>
+        </ul>
+      </div>
+    </div>
+  </noscript>
+  
+  <!-- حاوية تطبيق React -->
+  <div id="root"></div>
+  
+  <!-- يمكن إضافة Google Analytics هنا -->
+  <!--
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'GA_MEASUREMENT_ID');
+  </script>
+  -->
+</body>
 </html>

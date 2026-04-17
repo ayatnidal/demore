@@ -1,13 +1,329 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ===== إعدادات Tailwind الأساسية ===== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== تحميل الخطوط ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Arabic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800&display=swap');
+
+/* ===== Base Styles ===== */
+@layer base {
+  :root {
+    direction: ltr;
+    --paper: #f6f2ec;
+    --sand: #ebe4da;
+    --ink: #1b1a17;
+    --ink-soft: rgba(27, 26, 23, 0.7);
+    --ink-muted: rgba(27, 26, 23, 0.55);
+    --accent: #c2a46e;
+    --accent-strong: #b58b45;
+    --stroke: rgba(27, 26, 23, 0.12);
+  }
+
+  [dir="rtl"] {
+    direction: rtl;
+  }
+
+  [dir="ltr"] {
+    direction: ltr;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+  }
+
+  html {
+    font-size: 14px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: white;
+    color: var(--ink);
+    position: relative;
+  }
+
+  /* إضافة #root لـ React */
+  #root {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* هذا العنصر من Tailwind قد يسبب المشكلة */
+  #root > * {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  @media (min-width: 640px) {
+    html { font-size: 15px; }
+  }
+
+  @media (min-width: 768px) {
+    html { font-size: 16px; }
+  }
+
+  /* الخطوط */
+  .font-arabic {
+    font-family: 'Noto Naskh Arabic', serif;
+  }
+
+  .font-arabic-heading {
+    font-family: 'Noto Serif Arabic', serif;
+    font-weight: 600;
+  }
+
+  .font-english {
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .font-english-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .font-tajawal {
+    font-family: 'Tajawal', sans-serif;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f3ede3;
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #cbb38a, #bfa06a);
+    border-radius: 8px;
+    border: 2px solid #f3ede3;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #b8965c, #aa864e);
+  }
+
+  ::selection {
+    background-color: rgba(194, 164, 110, 0.25);
+    color: #1b1a17;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* ===== إصلاح المسافة الزائدة بعد الفوتر ===== */
+/* هذا يضمن أن الصفحة تنتهي عند الفوتر */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* إزالة أي مساحة بيضاء غير مرغوبة */
+* {
+  box-sizing: border-box;
+}
+
+/* ===== بقية الكود يبقى كما هو ===== */
+/* ===== Unified Height Utilities (MODIFIED) ===== */
+.min-h-screen-safe,
+.min-h-screen-fixed,
+.min-h-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-screen-safe,
+.h-screen-fixed,
+.h-screen {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+  background: linear-gradient(135deg, #cbb38a, #b8965c);
+  color: white;
+  font-weight: 600;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,.1);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #b8965c, #aa864e);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #d8c2a1, #c8ad7e);
+  color: white;
+  font-weight: 500;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-orange {
+  border: 2px solid #b8965c;
+  color: #b8965c;
+  background: transparent;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-orange:hover {
+  background-color: rgba(194,164,110,.1);
+  color: #aa864e;
+}
+
+/* ===== Cards ===== */
+.card-enhanced {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(27,26,23,.08);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
+  transition: all 0.4s ease;
+}
+
+.card-enhanced:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(27,26,23,.12);
+}
+
+/* ===== Utilities ===== */
+@layer utilities {
+  .container-custom {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .container-custom {
+      padding-inline: 2rem;
+    }
+  }
+
+  .section-padding {
+    padding-block: 4rem;
+  }
+
+  .responsive-heading {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .responsive-text {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.7;
+  }
+
+  .text-gradient-orange {
+    background: linear-gradient(135deg, #cbb38a, #b8965c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glass-effect {
+    backdrop-filter: blur(20px);
+    background: rgba(255,255,255,.8);
+    border: 1px solid rgba(255,255,255,.3);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(27,26,23,.12);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+
+  .bg-paper {
+    background-color: var(--paper);
+  }
+
+  .bg-sand {
+    background-color: var(--sand);
+  }
+
+  .bg-ink {
+    background-color: var(--ink);
+  }
+
+  .text-ink {
+    color: var(--ink);
+  }
+
+  .text-ink-soft {
+    color: var(--ink-soft);
+  }
+
+  .text-ink-muted {
+    color: var(--ink-muted);
+  }
+
+  .border-ink {
+    border-color: var(--stroke);
+  }
+
+  .lux-grid {
+    background-image: linear-gradient(to right, rgba(27,26,23,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(27,26,23,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+}
+
+/* ===== Language Support ===== */
+[lang="ar"] {
+  font-family: 'Noto Naskh Arabic', 'Tajawal', serif;
+}
+
+[lang="en"] {
+  font-family: 'Manrope', sans-serif;
 }

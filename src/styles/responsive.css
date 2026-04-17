@@ -1,0 +1,76 @@
+/* Responsive Design System */
+.responsive-container {
+  @apply container mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.responsive-title {
+  @apply text-2xl sm:text-3xl md:text-4xl font-bold;
+}
+
+.responsive-subtitle {
+  @apply text-lg sm:text-xl md:text-2xl font-semibold;
+}
+
+.responsive-text {
+  @apply text-sm sm:text-base md:text-lg;
+}
+
+.responsive-card {
+  @apply bg-white rounded-lg sm:rounded-xl md:rounded-2xl shadow-md sm:shadow-lg p-4 sm:p-5 md:p-6;
+}
+
+.responsive-button {
+  @apply px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg font-medium transition-all duration-300;
+}
+
+.responsive-button-sm {
+  @apply px-3 py-1.5 sm:px-4 sm:py-2 text-sm rounded-lg font-medium;
+}
+
+.responsive-button-lg {
+  @apply px-5 py-3 sm:px-6 sm:py-3.5 md:px-8 md:py-4 text-lg rounded-xl font-semibold;
+}
+
+.responsive-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6;
+}
+
+.responsive-input {
+  @apply w-full px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent;
+}
+
+.responsive-modal {
+  @apply fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 md:p-6;
+}
+
+.responsive-modal-content {
+  @apply bg-white rounded-xl sm:rounded-2xl w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto;
+}
+
+/* Mobile First Classes */
+.mobile-show { @apply block sm:hidden; }
+.mobile-hide { @apply hidden sm:block; }
+.tablet-show { @apply hidden md:block lg:hidden; }
+.desktop-show { @apply hidden lg:block; }
+
+/* RTL Support */
+[dir="rtl"] .responsive-container {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+/* Touch Friendly for Mobile */
+@media (max-width: 768px) {
+  button, 
+  a, 
+  input[type="button"], 
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, 
+  textarea, 
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
