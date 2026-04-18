@@ -24,6 +24,7 @@ export default function SplashScreen({ onComplete }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 1.2, ease: "easeInOut" }}
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+      style={{ fontFamily: "'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}
     >
       {/* Background Image with Cinematic Zoom Animation */}
       <motion.div
@@ -44,7 +45,7 @@ export default function SplashScreen({ onComplete }) {
           style={{
             backgroundImage: `url('/images/splashscreen.jpeg')`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center 30%', // Adjusted for better mobile framing
+            backgroundPosition: 'center 30%',
           }}
         />
         
@@ -201,6 +202,8 @@ export default function SplashScreen({ onComplete }) {
             }}
             className="text-white text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight text-center px-2 drop-shadow-2xl"
             style={{
+              fontFamily: "'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              fontWeight: 900,
               textShadow: '0 4px 20px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.2)'
             }}
           >
@@ -229,7 +232,7 @@ export default function SplashScreen({ onComplete }) {
             className="h-[2px] bg-gradient-to-r from-transparent via-white/80 to-transparent mt-3 sm:mt-4 md:mt-5 mx-auto"
           />
           
-          {/* Subtitle - Crisp and Clear */}
+          {/* Subtitle - Larger and Bolder */}
           <motion.p
             initial={{ 
               opacity: 0, 
@@ -258,12 +261,14 @@ export default function SplashScreen({ onComplete }) {
                 ease: "easeOut"
               }
             }}
-            className="text-white/90 text-sm sm:text-base md:text-lg lg:text-xl font-light tracking-wider mt-3 sm:mt-4 md:mt-5 text-center px-4"
+            className="text-white/90 text-base sm:text-lg md:text-xl lg:text-2xl font-bold tracking-wider mt-3 sm:mt-4 md:mt-5 text-center px-4"
             style={{
+              fontFamily: "'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              fontWeight: 700,
               textShadow: '0 2px 8px rgba(0,0,0,0.2)'
             }}
           >
-            {language === 'ar' ? 'The design and more' : 'The design and more'}
+            {language === 'ar' ? 'THE DESIGN AND MORE' : 'THE DESIGN AND MORE'}
           </motion.p>
         </div>
 

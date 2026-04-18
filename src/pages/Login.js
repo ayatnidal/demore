@@ -426,7 +426,7 @@ export default function Login() {
                         className="h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"
                       />
                       <p className="text-white/80 text-lg mt-2 tracking-wider">
-                        The design and more
+                        THE DESIGN AND MORE
                       </p>
                     </div>
                   </motion.div>
@@ -641,7 +641,7 @@ export default function Login() {
         >
           © {new Date().getFullYear()} DEMORE. {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All rights reserved'}.
           <br />
-          <span className="text-xs">The design and more</span>
+          <span className="text-xs">THE DESIGN AND MORE</span>
         </motion.div>
       </motion.div>
     </motion.div>

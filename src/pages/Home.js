@@ -664,14 +664,36 @@ export default function Home() {
                 </h1>
               </motion.div>
 
+              {/* Elegant Underline */}
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ 
+              width: "70%",
+              opacity: 1
+            }}
+            transition={{ 
+              width: {
+                duration: 0.9,   // 🔥 أسرع بكثير
+                delay: 0.6,      // 🔥 يظهر مباشرة تقريباً
+                ease: "easeOut"
+              },
+              opacity: {
+                duration: 0.4,
+                delay: 0.3,
+                ease: "easeOut"
+              }
+            }}
+            className="h-[2px] bg-gradient-to-r from-transparent via-white/90 to-transparent mt-[2px] sm:mt-[4px] mx-auto"
+          />
+
               <motion.span
                 variants={fadeInUp}
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-                className="block text-white/80 text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mt-2 sm:mt-4 font-sans"
+                className="block text-white/80 text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-4xl mt-2 sm:mt-4 font-sans"
               >
-                The design and more
+                THE DESIGN AND MORE
               </motion.span>
 
               <motion.div variants={fadeInUp} className="mt-4 sm:mt-6 md:mt-8">
@@ -1066,7 +1088,7 @@ export default function Home() {
                     DEMORE
                   </div>
                   <span className="block text-gray-600 text-sm sm:text-base mb-3 sm:mb-4 font-sans">
-                    The design and more
+                    THE DESIGN AND MORE
                   </span>
                   <p className="text-gray-500 text-xs sm:text-sm max-w-md font-sans">
                     {language === "ar"
