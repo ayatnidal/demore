@@ -185,8 +185,8 @@ const FloatingParticles = ({ count = 25 }) => {
   );
 };
 
-// ============== Category Data ==============
-const designCategories = [
+// ============== Base Category Definitions (without filtering) ==============
+const allDesignCategories = [
   // Residential categories
   { 
     id: "residential", 
@@ -293,8 +293,8 @@ const mainCategories = [
   }
 ];
 
-// ============== Quick Filter Categories ==============
-const quickFilterCategories = [
+// ============== Quick Filter Categories (will be filtered dynamically) ==============
+const allQuickFilterCategories = [
   { 
     id: "featured", 
     name: { ar: "مميزة", en: "Featured" },
@@ -401,22 +401,117 @@ const quickFilterCategories = [
   }
 ];
 
-// ============== Get All Subcategories ==============
-const getAllSubCategories = (mainCategory) => {
-  const category = designCategories.find(cat => cat.id === mainCategory);
-  return category ? category.subcategories : [];
+// ============== Helper function to filter categories based on projects ==============
+const filterCategoriesByProjects = (projects, categories) => {
+  if (!projects || projects.length === 0) return [];
+  
+  // Get all unique values from projects
+  const availableMainCategories = new Set();
+  const availableSubCategories = new Map(); // Map<mainCategoryId, Set<subCategoryId>>
+  const availableSpecializations = new Set();
+  const availableInteriorRooms = new Set();
+  
+  projects.forEach(project => {
+    if (project.category) {
+      // Main categories
+      if (project.category.mainCategory) {
+        availableMainCategories.add(project.category.mainCategory);
+      }
+      
+      // Sub categories
+      if (project.category.mainCategory && project.category.subCategory) {
+        if (!availableSubCategories.has(project.category.mainCategory)) {
+          availableSubCategories.set(project.category.mainCategory, new Set());
+        }
+        availableSubCategories.get(project.category.mainCategory).add(project.category.subCategory);
+      }
+      
+      // Specializations
+      if (project.category.specialization) {
+        availableSpecializations.add(project.category.specialization);
+      }
+      
+      // Interior rooms
+      if (project.category.interiorRooms && Array.isArray(project.category.interiorRooms)) {
+        project.category.interiorRooms.forEach(room => {
+          if (room) availableInteriorRooms.add(room);
+        });
+      }
+    }
+  });
+  
+  // Filter design categories
+  const filteredCategories = categories.map(category => {
+    if (category.id === "specializations") {
+      // Filter specializations
+      const filteredSubs = category.subcategories.filter(sub => 
+        sub.id === "all" || availableSpecializations.has(sub.id)
+      );
+      return { ...category, subcategories: filteredSubs };
+    }
+    else if (category.id === "interior_rooms") {
+      // Filter interior rooms
+      const filteredSubs = category.subcategories.filter(sub => 
+        sub.id === "full_projects" || availableInteriorRooms.has(sub.id)
+      );
+      return { ...category, subcategories: filteredSubs };
+    }
+    else {
+      // Filter residential/commercial subcategories
+      const filteredSubs = category.subcategories.filter(sub => {
+        if (sub.id === "all") return true;
+        const availableForCategory = availableSubCategories.get(category.id);
+        return availableForCategory && availableForCategory.has(sub.id);
+      });
+      return { ...category, subcategories: filteredSubs };
+    }
+  });
+  
+  // Only keep categories that have at least one subcategory (besides "all")
+  const finalCategories = filteredCategories.filter(category => {
+    if (category.id === "specializations") {
+      return category.subcategories.length > 0;
+    }
+    if (category.id === "interior_rooms") {
+      return category.subcategories.length > 0;
+    }
+    // For residential/commercial, keep if there's at least one subcategory besides "all" or if the main category exists in projects
+    const hasValidSubs = category.subcategories.some(sub => sub.id !== "all");
+    const mainCategoryExists = availableMainCategories.has(category.id);
+    return hasValidSubs || mainCategoryExists;
+  });
+  
+  return finalCategories;
 };
 
-// ============== Get Specializations ==============
-const getSpecializations = () => {
-  const specCat = designCategories.find(cat => cat.id === "specializations");
-  return specCat ? specCat.subcategories : [];
-};
-
-// ============== Get Interior Rooms ==============
-const getInteriorRooms = () => {
-  const roomCat = designCategories.find(cat => cat.id === "interior_rooms");
-  return roomCat ? roomCat.subcategories : [];
+const filterQuickFiltersByProjects = (projects, quickFilters) => {
+  if (!projects || projects.length === 0) return [];
+  
+  const availableInteriorRooms = new Set();
+  let hasFeatured = false;
+  
+  projects.forEach(project => {
+    if (project.isFeatured) hasFeatured = true;
+    
+    if (project.category && project.category.interiorRooms && Array.isArray(project.category.interiorRooms)) {
+      project.category.interiorRooms.forEach(room => {
+        if (room) availableInteriorRooms.add(room);
+      });
+    }
+  });
+  
+  // Filter quick filters
+  const filteredFilters = quickFilters.filter(filter => {
+    if (filter.type === "featured") {
+      return hasFeatured;
+    }
+    if (filter.type === "interiorRooms") {
+      return availableInteriorRooms.has(filter.value);
+    }
+    return false;
+  });
+  
+  return filteredFilters;
 };
 
 // ============== Sort Options ==============
@@ -432,7 +527,7 @@ const sortOptions = [
 ];
 
 // ============== Helper function to get subcategory name ==============
-const getSubcategoryName = (subCategoryId, mainCategoryId, language) => {
+const getSubcategoryName = (subCategoryId, mainCategoryId, language, designCategories) => {
   if (!subCategoryId || !mainCategoryId) return '';
   const mainCategory = designCategories.find(cat => cat.id === mainCategoryId);
   if (mainCategory) {
@@ -834,7 +929,7 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
 };
 
 // ============== Get category names helper ==============
-const getCategoryNames = (categoryIds, categoryType, language) => {
+const getCategoryNames = (categoryIds, categoryType, language, designCategories) => {
   if (!categoryIds || !Array.isArray(categoryIds)) return [];
   
   const categoryData = designCategories.find(cat => cat.id === categoryType);
@@ -954,7 +1049,8 @@ const QuickFilterBar = React.memo(({
   onQuickFilterToggle,
   onClearQuickFilters,
   selectedSort,
-  onSortChange
+  onSortChange,
+  availableQuickFilters
 }) => {
   const scrollContainerRef = useRef(null);
 
@@ -980,6 +1076,13 @@ const QuickFilterBar = React.memo(({
   };
 
   const isFeaturedSelected = selectedSort === "featured_only";
+
+  // Only show available quick filters
+  const filteredQuickFilters = availableQuickFilters;
+
+  if (filteredQuickFilters.length === 0 && !isFeaturedSelected && selectedQuickFilters.length === 0) {
+    return null;
+  }
 
   return (
     <div className="relative">
@@ -1044,7 +1147,7 @@ const QuickFilterBar = React.memo(({
         className="flex overflow-x-auto scrollbar-hide gap-1.5 xs:gap-2 pb-3 -mb-3 px-0.5"
         dir={language === 'ar' ? 'rtl' : 'ltr'}
       >
-        {quickFilterCategories.map((filter) => {
+        {filteredQuickFilters.map((filter) => {
           const Icon = filter.icon;
           const isSelected = filter.type === "featured" 
             ? selectedSort === "featured_only"
@@ -1088,7 +1191,8 @@ const FlexibleFilterModal = React.memo(({
   language, 
   currentFilters, 
   onApplyFilters, 
-  onClose 
+  onClose,
+  availableCategories
 }) => {
   const [selectedMainCategory, setSelectedMainCategory] = useState(currentFilters.mainCategory || "all");
   const [selectedSubCategories, setSelectedSubCategories] = useState(currentFilters.subCategories || []);
@@ -1143,7 +1247,8 @@ const FlexibleFilterModal = React.memo(({
 
   const getCurrentSubCategories = () => {
     if (!selectedMainCategory || selectedMainCategory === "all") return [];
-    return getAllSubCategories(selectedMainCategory);
+    const category = availableCategories.find(cat => cat.id === selectedMainCategory);
+    return category ? category.subcategories : [];
   };
 
   const showInteriorRooms = () => {
@@ -1154,6 +1259,16 @@ const FlexibleFilterModal = React.memo(({
     return selectedSpecializations.some(spec => 
       normalizeValue(spec) === "interior" 
     );
+  };
+
+  const getAvailableSpecializations = () => {
+    const specCat = availableCategories.find(cat => cat.id === "specializations");
+    return specCat ? specCat.subcategories : [];
+  };
+
+  const getAvailableInteriorRooms = () => {
+    const roomCat = availableCategories.find(cat => cat.id === "interior_rooms");
+    return roomCat ? roomCat.subcategories : [];
   };
 
   return (
@@ -1234,34 +1349,36 @@ const FlexibleFilterModal = React.memo(({
             </div>
           )}
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              {language === 'ar' ? 'التخصصات' : 'Specializations'}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {getSpecializations().map((spec) => (
-                <button
-                  key={spec.id}
-                  onClick={() => handleSpecializationToggle(spec.id)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    selectedSpecializations.includes(spec.id)
-                      ? 'bg-amber-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {spec.name[language]}
-                </button>
-              ))}
+          {getAvailableSpecializations().length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                {language === 'ar' ? 'التخصصات' : 'Specializations'}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {getAvailableSpecializations().map((spec) => (
+                  <button
+                    key={spec.id}
+                    onClick={() => handleSpecializationToggle(spec.id)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      selectedSpecializations.includes(spec.id)
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {spec.name[language]}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {showInteriorRooms() && (
+          {showInteriorRooms() && getAvailableInteriorRooms().length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 {language === 'ar' ? 'الغرف الداخلية' : 'Interior Rooms'}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {getInteriorRooms().map((room) => (
+                {getAvailableInteriorRooms().map((room) => (
                   <button
                     key={room.id}
                     onClick={() => handleInteriorRoomToggle(room.id)}
@@ -1403,7 +1520,7 @@ const SearchComponent = React.memo(({
 SearchComponent.displayName = 'SearchComponent';
 
 // ============== Project Card Component ==============
-const ProjectCard = React.memo(({ project, language, index }) => {
+const ProjectCard = React.memo(({ project, language, index, designCategories }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
@@ -1451,7 +1568,7 @@ const ProjectCard = React.memo(({ project, language, index }) => {
     if (subCategory) {
       badges.push({
         id: "sub",
-        text: getSubcategoryName(subCategory, mainCategory, language),
+        text: getSubcategoryName(subCategory, mainCategory, language, designCategories),
         color: "from-purple-100 to-purple-200 text-purple-700"
       });
     }
@@ -1475,7 +1592,7 @@ const ProjectCard = React.memo(({ project, language, index }) => {
     const { interiorRooms = [] } = project.category;
     const badges = [];
     
-    const roomNames = getCategoryNames(interiorRooms, "interior_rooms", language);
+    const roomNames = getCategoryNames(interiorRooms, "interior_rooms", language, designCategories);
     
     roomNames.forEach((name, index) => {
       badges.push({
@@ -1642,7 +1759,8 @@ const ActiveFiltersDisplay = React.memo(({
   onRemoveFilter,
   onSortChange,
   onRemoveQuickFilter,
-  onOpenFilterModal
+  onOpenFilterModal,
+  designCategories
 }) => {
   const hasActiveFilters = (selectedCategory?.mainCategory !== "all" && selectedCategory?.mainCategory) ||
                           selectedCategory?.subCategories?.length > 0 ||
@@ -1691,7 +1809,8 @@ const ActiveFiltersDisplay = React.memo(({
     }
     
     if (selectedCategory?.subCategories?.length > 0) {
-      const subCats = getAllSubCategories(selectedCategory.mainCategory);
+      const mainCatData = designCategories.find(cat => cat.id === selectedCategory.mainCategory);
+      const subCats = mainCatData ? mainCatData.subcategories : [];
       selectedCategory.subCategories.forEach(subId => {
         const sub = subCats.find(s => s.id === subId);
         if (sub && sub.id !== "all") {
@@ -1706,7 +1825,8 @@ const ActiveFiltersDisplay = React.memo(({
     }
     
     if (selectedCategory?.specializations?.length > 0) {
-      const specs = getSpecializations();
+      const specCat = designCategories.find(cat => cat.id === "specializations");
+      const specs = specCat ? specCat.subcategories : [];
       selectedCategory.specializations.forEach(specId => {
         const spec = specs.find(s => s.id === specId);
         if (spec) {
@@ -1721,7 +1841,8 @@ const ActiveFiltersDisplay = React.memo(({
     }
     
     if (selectedCategory?.interiorRooms?.length > 0) {
-      const rooms = getInteriorRooms();
+      const roomCat = designCategories.find(cat => cat.id === "interior_rooms");
+      const rooms = roomCat ? roomCat.subcategories : [];
       selectedCategory.interiorRooms.forEach(roomId => {
         const room = rooms.find(r => r.id === roomId);
         if (room) {
@@ -1796,10 +1917,7 @@ const ActiveFiltersDisplay = React.memo(({
                   if (filter.type === 'featured') {
                     onSortChange("year_desc");
                   } else if (filter.isQuick) {
-                    const quickFilter = quickFilterCategories.find(qf => qf.id === filter.id);
-                    if (quickFilter) {
-                      onRemoveQuickFilter(quickFilter);
-                    }
+                    onRemoveQuickFilter(filter);
                   } else {
                     onRemoveFilter(filter.type, filter.id);
                   }
@@ -1825,11 +1943,13 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [displayedProjects, setDisplayedProjects] = useState([]);
-  const [projectsToShow, setProjectsToShow] = useState(8); // Initial number of projects to show
+  const [projectsToShow, setProjectsToShow] = useState(8);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState(allDesignCategories);
+  const [availableQuickFilters, setAvailableQuickFilters] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(() => {
     const savedFilter = localStorage.getItem('portfolioFilter');
     if (savedFilter) {
@@ -2112,6 +2232,14 @@ export default function Portfolio() {
       setProjects(activeProjects);
       setFilteredProjects(activeProjects);
       
+      // Filter categories based on actual projects
+      const filteredCategories = filterCategoriesByProjects(activeProjects, allDesignCategories);
+      setAvailableCategories(filteredCategories);
+      
+      // Filter quick filters based on actual projects
+      const filteredQuickFilters = filterQuickFiltersByProjects(activeProjects, allQuickFilterCategories);
+      setAvailableQuickFilters(filteredQuickFilters);
+      
     } catch (error) {
       console.error("Error fetching projects:", error);
       setError(language === 'ar' 
@@ -2180,7 +2308,8 @@ export default function Portfolio() {
             }
             
             if (project.category.subCategory) {
-              const subCategories = getAllSubCategories(project.category.mainCategory);
+              const mainCatData = availableCategories.find(cat => cat.id === project.category.mainCategory);
+              const subCategories = mainCatData ? mainCatData.subcategories : [];
               const subCat = subCategories.find(s => s.id === project.category.subCategory);
               if (subCat) {
                 const subNameAr = subCat.name.ar.toLowerCase();
@@ -2193,7 +2322,8 @@ export default function Portfolio() {
             }
             
             if (project.category.specialization) {
-              const specializations = getSpecializations();
+              const specCat = availableCategories.find(cat => cat.id === "specializations");
+              const specializations = specCat ? specCat.subcategories : [];
               const spec = specializations.find(s => s.id === project.category.specialization);
               if (spec) {
                 const specNameAr = spec.name.ar.toLowerCase();
@@ -2206,7 +2336,8 @@ export default function Portfolio() {
             }
             
             if (project.category.interiorRooms && Array.isArray(project.category.interiorRooms)) {
-              const rooms = getInteriorRooms();
+              const roomCat = availableCategories.find(cat => cat.id === "interior_rooms");
+              const rooms = roomCat ? roomCat.subcategories : [];
               const roomMatch = project.category.interiorRooms.some(roomId => {
                 const room = rooms.find(r => r.id === roomId || normalizeValue(r.id) === normalizeValue(roomId));
                 if (room) {
@@ -2286,7 +2417,7 @@ export default function Portfolio() {
       
       return filtered;
     };
-  }, [safeToLowerCase, language]);
+  }, [safeToLowerCase, language, availableCategories]);
 
   useEffect(() => {
     const newFilteredProjects = searchFilterAndSortProjects(
@@ -2437,7 +2568,8 @@ export default function Portfolio() {
     const parts = [];
     
     if (selectedCategory.subCategories?.length > 0) {
-      const subCats = getAllSubCategories(selectedCategory.mainCategory);
+      const mainCatData = availableCategories.find(cat => cat.id === selectedCategory.mainCategory);
+      const subCats = mainCatData ? mainCatData.subcategories : [];
       const names = selectedCategory.subCategories
         .filter(id => id !== "all")
         .map(id => subCats.find(s => s.id === id)?.name[language])
@@ -2448,7 +2580,8 @@ export default function Portfolio() {
     }
     
     if (selectedCategory.specializations?.length > 0) {
-      const specs = getSpecializations();
+      const specCat = availableCategories.find(cat => cat.id === "specializations");
+      const specs = specCat ? specCat.subcategories : [];
       const names = selectedCategory.specializations
         .map(id => specs.find(s => s.id === id)?.name[language])
         .filter(Boolean);
@@ -2458,7 +2591,8 @@ export default function Portfolio() {
     }
     
     if (selectedCategory.interiorRooms?.length > 0) {
-      const rooms = getInteriorRooms();
+      const roomCat = availableCategories.find(cat => cat.id === "interior_rooms");
+      const rooms = roomCat ? roomCat.subcategories : [];
       const names = selectedCategory.interiorRooms
         .map(id => rooms.find(r => r.id === id)?.name[language])
         .filter(Boolean);
@@ -2530,6 +2664,7 @@ export default function Portfolio() {
             currentFilters={selectedCategory}
             onApplyFilters={handleApplyFilters}
             onClose={handleCloseFilterModal}
+            availableCategories={availableCategories}
           />
         )}
       </AnimatePresence>
@@ -2657,6 +2792,7 @@ export default function Portfolio() {
             onClearQuickFilters={handleClearQuickFilters}
             selectedSort={sortOption}
             onSortChange={handleSortChange}
+            availableQuickFilters={availableQuickFilters}
           />
         </div>
       </motion.div>
@@ -2672,6 +2808,7 @@ export default function Portfolio() {
           onRemoveQuickFilter={handleRemoveQuickFilter}
           onSortChange={handleSortChange}
           onOpenFilterModal={handleOpenFilterModal}
+          designCategories={availableCategories}
         />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 xs:gap-3 sm:gap-4 mb-4 xs:mb-5 sm:mb-6 md:mb-8 lg:mb-10">
@@ -2730,6 +2867,7 @@ export default function Portfolio() {
                   project={project} 
                   language={language}
                   index={index}
+                  designCategories={availableCategories}
                 />
               ))}
             </div>
