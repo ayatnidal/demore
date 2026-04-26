@@ -4,7 +4,6 @@ import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import WatermarkedImage from "../components/WatermarkedImage";
 
 // ============== Custom Icons ==============
 const SearchIcon = ({ className = "w-5 h-5" }) => (
@@ -375,7 +374,7 @@ const allQuickFilterCategories = [
     type: "interiorRooms",
     value: "full_projects"
   },
-    { 
+  { 
     id: "dressing_room", 
     name: { ar: "غرفة ملابس", en: "Dressing Room" },
     icon: DressingRoomIcon,
@@ -405,20 +404,17 @@ const allQuickFilterCategories = [
 const filterCategoriesByProjects = (projects, categories) => {
   if (!projects || projects.length === 0) return [];
   
-  // Get all unique values from projects
   const availableMainCategories = new Set();
-  const availableSubCategories = new Map(); // Map<mainCategoryId, Set<subCategoryId>>
+  const availableSubCategories = new Map();
   const availableSpecializations = new Set();
   const availableInteriorRooms = new Set();
   
   projects.forEach(project => {
     if (project.category) {
-      // Main categories
       if (project.category.mainCategory) {
         availableMainCategories.add(project.category.mainCategory);
       }
       
-      // Sub categories
       if (project.category.mainCategory && project.category.subCategory) {
         if (!availableSubCategories.has(project.category.mainCategory)) {
           availableSubCategories.set(project.category.mainCategory, new Set());
@@ -426,12 +422,10 @@ const filterCategoriesByProjects = (projects, categories) => {
         availableSubCategories.get(project.category.mainCategory).add(project.category.subCategory);
       }
       
-      // Specializations
       if (project.category.specialization) {
         availableSpecializations.add(project.category.specialization);
       }
       
-      // Interior rooms
       if (project.category.interiorRooms && Array.isArray(project.category.interiorRooms)) {
         project.category.interiorRooms.forEach(room => {
           if (room) availableInteriorRooms.add(room);
@@ -440,24 +434,20 @@ const filterCategoriesByProjects = (projects, categories) => {
     }
   });
   
-  // Filter design categories
   const filteredCategories = categories.map(category => {
     if (category.id === "specializations") {
-      // Filter specializations
       const filteredSubs = category.subcategories.filter(sub => 
         sub.id === "all" || availableSpecializations.has(sub.id)
       );
       return { ...category, subcategories: filteredSubs };
     }
     else if (category.id === "interior_rooms") {
-      // Filter interior rooms
       const filteredSubs = category.subcategories.filter(sub => 
         sub.id === "full_projects" || availableInteriorRooms.has(sub.id)
       );
       return { ...category, subcategories: filteredSubs };
     }
     else {
-      // Filter residential/commercial subcategories
       const filteredSubs = category.subcategories.filter(sub => {
         if (sub.id === "all") return true;
         const availableForCategory = availableSubCategories.get(category.id);
@@ -467,7 +457,6 @@ const filterCategoriesByProjects = (projects, categories) => {
     }
   });
   
-  // Only keep categories that have at least one subcategory (besides "all")
   const finalCategories = filteredCategories.filter(category => {
     if (category.id === "specializations") {
       return category.subcategories.length > 0;
@@ -475,7 +464,6 @@ const filterCategoriesByProjects = (projects, categories) => {
     if (category.id === "interior_rooms") {
       return category.subcategories.length > 0;
     }
-    // For residential/commercial, keep if there's at least one subcategory besides "all" or if the main category exists in projects
     const hasValidSubs = category.subcategories.some(sub => sub.id !== "all");
     const mainCategoryExists = availableMainCategories.has(category.id);
     return hasValidSubs || mainCategoryExists;
@@ -500,7 +488,6 @@ const filterQuickFiltersByProjects = (projects, quickFilters) => {
     }
   });
   
-  // Filter quick filters
   const filteredFilters = quickFilters.filter(filter => {
     if (filter.type === "featured") {
       return hasFeatured;
@@ -537,7 +524,7 @@ const getSubcategoryName = (subCategoryId, mainCategoryId, language, designCateg
   return subCategoryId;
 };
 
-// ============== Enhanced normalize value function with full search support ==============
+// ============== Enhanced normalize value function ==============
 const normalizeValue = (value) => {
   if (!value) return "";
   
@@ -545,13 +532,9 @@ const normalizeValue = (value) => {
   
   if (valueStr === "") return "";
   
-  // Comprehensive Arabic to English mapping
   const arabicToEnglishMap = {
-      // Main categories
       "سكني": "residential",
       "تجاري": "commercial",
-      
-      // Residential subcategories
       "شقق": "apartments",
       "شقة": "apartments",
       "شقه": "apartments",
@@ -565,8 +548,6 @@ const normalizeValue = (value) => {
       "شاليه": "chalets",
       "كوخ": "cabin",
       "روف": "roof",
-      
-      // Commercial subcategories
       "مكاتب": "offices",
       "متاجر": "stores",
       "متجر": "stores",
@@ -586,15 +567,11 @@ const normalizeValue = (value) => {
       "صالة رياضية": "gyms",
       "مدارس": "schools",
       "مدرسة": "schools",
-      
-      // Specializations
       "داخلي": "interior",
       "خارجي": "exterior", 
       "تنسيق حدائق": "landscape",
       "لاندسكيب": "landscape",
       "داخلي وخارجي": "both",
-      
-      // Interior Rooms - Full support for all search terms
       "غرفة المعيشة": "living_room",
       "غرفة معيشة": "living_room",
       "معيشة": "living_room",
@@ -653,7 +630,6 @@ const normalizeValue = (value) => {
   };
   
   const englishNormalizationMap = {
-      // Residential
       "residential": "residential",
       "commercial": "commercial",
       "apartment": "apartments",
@@ -680,8 +656,6 @@ const normalizeValue = (value) => {
       "storage room": "storage_room",
       "storage_room": "storage_room",
       "storeroom": "storage_room",
-      
-      // Commercial
       "office": "offices",
       "offices": "offices",
       "store": "stores",
@@ -702,15 +676,11 @@ const normalizeValue = (value) => {
       "gyms": "gyms",
       "school": "schools",
       "schools": "schools",
-      
-      // Specializations
       "interior": "interior",
       "exterior": "exterior", 
       "landscape": "landscape",
       "both": "both",
       "interior & exterior": "both",
-      
-      // Interior Rooms
       "living room": "living_room",
       "living_room": "living_room",
       "salon_room": "salon_room",
@@ -741,30 +711,25 @@ const normalizeValue = (value) => {
       "all": "all"
   };
     
-  // First check direct mapping
   if (englishNormalizationMap[valueStr]) {
     return englishNormalizationMap[valueStr];
   }
   
-  // Then check Arabic mapping
   if (arabicToEnglishMap[valueStr]) {
     return arabicToEnglishMap[valueStr];
   }
   
-  // Check for partial matches
   for (const [arabic, english] of Object.entries(arabicToEnglishMap)) {
     if (valueStr.includes(arabic) || arabic.includes(valueStr)) {
       return english;
     }
   }
   
-  // Clean and try again
   const cleanedValue = valueStr.replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
   if (englishNormalizationMap[cleanedValue]) {
     return englishNormalizationMap[cleanedValue];
   }
   
-  // Special handling for common search terms
   if (valueStr.includes("حمام") || valueStr.includes("بانيو") || valueStr === "bath" || valueStr === "bathroom") {
     return "bathroom";
   }
@@ -790,7 +755,6 @@ const normalizeValue = (value) => {
 
 // ============== Enhanced filter matching function ==============
 const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
-  // If no active filters, show all projects
   const hasActiveFilters = filter?.mainCategory !== "all" || 
                           (filter?.subCategories?.length > 0 && !filter?.subCategories?.includes("all")) ||
                           (filter?.specializations?.length > 0) ||
@@ -807,7 +771,6 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
     return false;
   }
   
-  // Check featured only first
   if (sortOption === "featured_only") {
     if (!project.isFeatured) return false;
     if (!hasActiveFilters || (filter?.mainCategory === "all" && !filter?.subCategories?.length && !filter?.specializations?.length && !filter?.interiorRooms?.length && !filter?.exteriorAreas?.length && !quickFilters?.length)) {
@@ -815,7 +778,6 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
     }
   }
   
-  // Check quick filters first - they take priority
   if (quickFilters && quickFilters.length > 0) {
     return quickFilters.some(qf => {
       const qfValue = normalizeValue(qf.value);
@@ -824,7 +786,6 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
       if (qfType === "interiorRooms") {
         const projectRooms = project.category.interiorRooms || [];
         
-        // Normalize all project rooms
         const normalizedProjectRooms = projectRooms.map(room => {
           let normalized = normalizeValue(room);
           if (normalized === "salon" || normalized === "salons") {
@@ -846,10 +807,8 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
     });
   }
   
-  // No quick filters, check detailed filters
   const { mainCategory, subCategory, specialization, interiorRooms = [] } = project.category;
   
-  // Check main category
   if (filter?.mainCategory && filter.mainCategory !== "all") {
     const normalizedProjectMain = normalizeValue(mainCategory);
     const normalizedFilterMain = normalizeValue(filter.mainCategory);
@@ -859,11 +818,8 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
     }
   }
   
-  // Check sub categories - handle "all" selection
   if (filter?.subCategories && filter.subCategories.length > 0) {
-    // If "all" is selected in subcategories, show all projects regardless of subcategory
     if (filter.subCategories.includes("all")) {
-      // Skip subcategory filtering
     } else {
       if (!subCategory || subCategory === "") {
         return false;
@@ -878,7 +834,6 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
     }
   }
   
-  // Check specializations
   if (filter?.specializations && filter.specializations.length > 0) {
     if (specialization) {
       const normalizedProjectSpec = normalizeValue(specialization);
@@ -892,15 +847,12 @@ const projectMatchesFilter = (project, filter, quickFilters, sortOption) => {
     }
   }
   
-  // Check interior rooms
   if (filter?.interiorRooms && filter.interiorRooms.length > 0) {
-    // Check if the selected specialization is interior or both
     const selectedSpecializations = filter.specializations || [];
     const hasInteriorSpec = selectedSpecializations.some(spec => 
       normalizeValue(spec) === "interior" || normalizeValue(spec) === "both"
     );
     
-    // If no specialization selected, or if interior/both is selected, then apply interior rooms filter
     if (selectedSpecializations.length === 0 || hasInteriorSpec) {
       if (!Array.isArray(interiorRooms) || interiorRooms.length === 0) {
         return false;
@@ -1077,7 +1029,6 @@ const QuickFilterBar = React.memo(({
 
   const isFeaturedSelected = selectedSort === "featured_only";
 
-  // Only show available quick filters
   const filteredQuickFilters = availableQuickFilters;
 
   if (filteredQuickFilters.length === 0 && !isFeaturedSelected && selectedQuickFilters.length === 0) {
@@ -1520,7 +1471,7 @@ const SearchComponent = React.memo(({
 SearchComponent.displayName = 'SearchComponent';
 
 // ============== Project Card Component ==============
-const ProjectCard = React.memo(({ project, language, index, designCategories }) => {
+const ProjectCard = React.memo(({ project, language, index, designCategories, onImageLoad, onCardClick }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
@@ -1547,11 +1498,40 @@ const ProjectCard = React.memo(({ project, language, index, designCategories }) 
     return project.projectName;
   };
 
+  // 🔥 دالة للحصول على شارة التخصص (داخلي/خارجي/داخلي وخارجي)
+  const getSpecializationBadge = () => {
+    if (!project.category?.specialization) return null;
+    
+    const specCat = designCategories.find(cat => cat.id === "specializations");
+    const spec = specCat?.subcategories?.find(sub => sub.id === project.category.specialization);
+    
+    if (!spec) return null;
+    
+    let badgeColor = "from-gray-100 to-gray-200 text-gray-700";
+    
+    
+    if (spec.id === "interior") {
+      badgeColor = "from-blue-100 to-blue-200 text-blue-700";
+    } else if (spec.id === "exterior") {
+      badgeColor = "from-green-100 to-green-200 text-green-700";
+    } else if (spec.id === "both") {
+      badgeColor = "from-purple-100 to-purple-200 text-purple-700";
+    } else if (spec.id === "landscape") {
+      badgeColor = "from-emerald-100 to-emerald-200 text-emerald-700";
+    }
+    
+    return {
+      id: "specialization",
+      text: spec.name[language] || spec.name.en,
+      color: badgeColor
+    };
+  };
+
   const getCategoryBadges = () => {
     if (!project.category) return null;
     
     const badges = [];
-    const { mainCategory, subCategory, specialization } = project.category;
+    const { mainCategory, subCategory } = project.category;
     
     if (mainCategory) {
       badges.push({
@@ -1573,14 +1553,10 @@ const ProjectCard = React.memo(({ project, language, index, designCategories }) 
       });
     }
     
-    if (specialization && specialization !== "both") {
-      const specCat = designCategories.find(cat => cat.id === "specializations");
-      const spec = specCat?.subcategories?.find(sub => sub.id === specialization);
-      badges.push({
-        id: "spec",
-        text: spec?.name[language] || specialization,
-        color: "from-amber-100 to-amber-200 text-amber-700"
-      });
+    // 🔥 إضافة شارة التخصص
+    const specBadge = getSpecializationBadge();
+    if (specBadge) {
+      badges.push(specBadge);
     }
     
     return badges;
@@ -1620,8 +1596,18 @@ const ProjectCard = React.memo(({ project, language, index, designCategories }) 
     e.stopPropagation();
     e.preventDefault();
     
+    if (onCardClick) {
+      onCardClick(index);
+    }
+    
     navigate(`/project/${project.id}`);
-  }, [project.id, navigate]);
+  }, [project.id, index, navigate, onCardClick]);
+
+  const handleImageLoad = useCallback(() => {
+    if (onImageLoad) {
+      onImageLoad(project.id);
+    }
+  }, [project.id, onImageLoad]);
 
   const categoryBadges = getCategoryBadges();
   const roomAreaBadges = getRoomAndAreaBadges();
@@ -1645,15 +1631,13 @@ const ProjectCard = React.memo(({ project, language, index, designCategories }) 
         className="bg-white rounded-xl xs:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-200 h-full cursor-pointer flex flex-col"
       >
         <div className="relative h-40 xs:h-44 sm:h-48 md:h-56 lg:h-64 xl:h-72 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0">
-          <WatermarkedImage
+          <img
             src={getDisplayImage()}
             alt={getProjectName()}
             className="w-full h-full object-cover transition-transform duration-700"
-            animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
-            mode="centered-bottom"
-            watermarkText="DEMORE"
-            opacity={0.2}
-            preserveAspectRatio={true}
+            style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
+            onLoad={handleImageLoad}
+            loading="lazy"
           />
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1670,18 +1654,6 @@ const ProjectCard = React.memo(({ project, language, index, designCategories }) 
               </motion.div>
             </div>
           )}
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            className="absolute bottom-2 xs:bottom-3 right-2 xs:right-3"
-          >
-            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-              <svg className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-              </svg>
-            </div>
-          </motion.div>
         </div>
         
         <div className="p-2 xs:p-3 sm:p-4 md:p-5 lg:p-6 flex-1 flex flex-col">
@@ -1943,7 +1915,18 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [displayedProjects, setDisplayedProjects] = useState([]);
-  const [projectsToShow, setProjectsToShow] = useState(8);
+  const [projectsToShow, setProjectsToShow] = useState(() => {
+    const savedData = sessionStorage.getItem('portfolioScrollPosition');
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        return data.projectsToShow || 8;
+      } catch (e) {
+        return 8;
+      }
+    }
+    return 8;
+  });
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const [heroImageIndex, setHeroImageIndex] = useState(0);
@@ -1994,26 +1977,184 @@ export default function Portfolio() {
     return localStorage.getItem('portfolioSortOption') || "year_desc";
   });
   
+  const [loadedImagesCount, setLoadedImagesCount] = useState(0);
+  
   const { language, direction } = useLanguage();
   const navigate = useNavigate();
   const containerRef = useRef(null);
+  const projectsGridRef = useRef(null);
+  const imagesLoadedRef = useRef(new Set());
+  const initialRestoreDoneRef = useRef(false);
 
-  // Reset pagination when filters/search/sort change
+  const handleProjectImageLoad = useCallback((projectId) => {
+    imagesLoadedRef.current.add(projectId);
+    setLoadedImagesCount(imagesLoadedRef.current.size);
+  }, []);
+
+  const saveScrollPosition = useCallback(() => {
+    const scrollData = {
+      x: window.scrollX,
+      y: window.scrollY,
+      projectsToShow: projectsToShow,
+      timestamp: Date.now()
+    };
+    
+    sessionStorage.setItem('portfolioScrollPosition', JSON.stringify(scrollData));
+    sessionStorage.setItem('portfolioReturnFromProject', 'true');
+  }, [projectsToShow]);
+
+  const restoreScrollPosition = useCallback(() => {
+    const isReturning = sessionStorage.getItem('portfolioReturnFromProject');
+    
+    if (isReturning !== 'true') return;
+    
+    const savedData = sessionStorage.getItem('portfolioScrollPosition');
+    if (!savedData) {
+      sessionStorage.removeItem('portfolioReturnFromProject');
+      return;
+    }
+    
+    try {
+      const scrollData = JSON.parse(savedData);
+      const { y, projectsToShow: savedProjectsToShow, timestamp } = scrollData;
+      
+      if (Date.now() - timestamp > 30 * 60 * 1000) {
+        sessionStorage.removeItem('portfolioReturnFromProject');
+        sessionStorage.removeItem('portfolioScrollPosition');
+        return;
+      }
+      
+      if (savedProjectsToShow && savedProjectsToShow > projectsToShow) {
+        setProjectsToShow(savedProjectsToShow);
+      }
+      
+      const scrollToPosition = () => {
+        window.scrollTo({
+          left: 0,
+          top: y || 0,
+          behavior: 'instant'
+        });
+      };
+      
+      scrollToPosition();
+      setTimeout(scrollToPosition, 50);
+      setTimeout(scrollToPosition, 150);
+      setTimeout(scrollToPosition, 300);
+      
+      requestAnimationFrame(() => {
+        scrollToPosition();
+      });
+      
+      setTimeout(() => {
+        scrollToPosition();
+        initialRestoreDoneRef.current = true;
+        
+        sessionStorage.removeItem('portfolioReturnFromProject');
+        sessionStorage.removeItem('portfolioScrollPosition');
+      }, 600);
+      
+    } catch (e) {
+      console.error('Error restoring scroll position:', e);
+      sessionStorage.removeItem('portfolioReturnFromProject');
+      sessionStorage.removeItem('portfolioScrollPosition');
+    }
+  }, [projectsToShow]);
+
+  const handleProjectCardClick = useCallback(() => {
+    saveScrollPosition();
+  }, [saveScrollPosition]);
+
   useEffect(() => {
+    if (!initialRestoreDoneRef.current && !loading && displayedProjects.length > 0) {
+      restoreScrollPosition();
+    }
+  }, [loading, displayedProjects.length, restoreScrollPosition]);
+
+  useEffect(() => {
+    const isReturning = sessionStorage.getItem('portfolioReturnFromProject');
+    
+    if (isReturning === 'true' && !initialRestoreDoneRef.current && displayedProjects.length > 0) {
+      const targetLoadedCount = Math.ceil(displayedProjects.length * 0.6);
+      
+      if (loadedImagesCount >= targetLoadedCount) {
+        restoreScrollPosition();
+        initialRestoreDoneRef.current = true;
+      }
+    }
+  }, [loadedImagesCount, displayedProjects.length, restoreScrollPosition]);
+
+  useEffect(() => {
+    const isReturning = sessionStorage.getItem('portfolioReturnFromProject');
+    
+    if (isReturning === 'true' && !initialRestoreDoneRef.current && 
+        projectsToShow > 8 && displayedProjects.length >= projectsToShow) {
+      
+      const savedData = sessionStorage.getItem('portfolioScrollPosition');
+      if (savedData) {
+        try {
+          const scrollData = JSON.parse(savedData);
+          if (scrollData.projectsToShow > 8) {
+            const targetLoadedCount = Math.ceil(displayedProjects.length * 0.6);
+            if (loadedImagesCount >= targetLoadedCount) {
+              restoreScrollPosition();
+              initialRestoreDoneRef.current = true;
+            }
+          }
+        } catch (e) {
+          // ignore errors
+        }
+      }
+    }
+  }, [projectsToShow, displayedProjects.length, loadedImagesCount, restoreScrollPosition]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const scrollData = {
+        x: window.scrollX,
+        y: window.scrollY,
+        projectsToShow: projectsToShow,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('portfolioScrollPosition', JSON.stringify(scrollData));
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [projectsToShow]);
+
+  useEffect(() => {
+    if (!initialRestoreDoneRef.current && sessionStorage.getItem('portfolioReturnFromProject') === 'true') {
+      return;
+    }
+    
     setProjectsToShow(8);
     setHasMore(true);
+    imagesLoadedRef.current.clear();
+    setLoadedImagesCount(0);
+    initialRestoreDoneRef.current = false;
   }, [selectedCategory, selectedQuickFilters, searchTerm, sortOption]);
 
-  // Update displayed projects when filteredProjects or projectsToShow changes
   useEffect(() => {
     const newDisplayedProjects = filteredProjects.slice(0, projectsToShow);
     setDisplayedProjects(newDisplayedProjects);
     setHasMore(newDisplayedProjects.length < filteredProjects.length);
   }, [filteredProjects, projectsToShow]);
 
-  // Load more projects
   const loadMoreProjects = useCallback(() => {
-    setProjectsToShow(prev => prev + 8);
+    setProjectsToShow(prev => {
+      const newValue = prev + 8;
+      const savedData = sessionStorage.getItem('portfolioScrollPosition');
+      if (savedData) {
+        try {
+          const scrollData = JSON.parse(savedData);
+          scrollData.projectsToShow = newValue;
+          sessionStorage.setItem('portfolioScrollPosition', JSON.stringify(scrollData));
+        } catch (e) {
+          // ignore errors
+        }
+      }
+      return newValue;
+    });
   }, []);
 
   useEffect(() => {
@@ -2223,20 +2364,40 @@ export default function Portfolio() {
         return processedData;
       });
       
-      projectsData.sort((a, b) => (a.order || 999) - (b.order || 999));
+      projectsData.sort((a, b) => {
+        const yearA = parseInt(a.projectYear) || 0;
+        const yearB = parseInt(b.projectYear) || 0;
+        
+        if (yearB !== yearA) {
+          return yearB - yearA;
+        }
+        
+        const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        
+        if (timeB !== timeA) {
+          return timeB - timeA;
+        }
+        
+        const createTimeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const createTimeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        
+        if (createTimeB !== createTimeA) {
+          return createTimeB - createTimeA;
+        }
+        
+        return (a.order || 999) - (b.order || 999);
+      });
       
       const activeProjects = projectsData.filter(project => project.isActive !== false);
       
       console.log(`Processed ${activeProjects.length} active projects (excluding admin)`);
       
       setProjects(activeProjects);
-      setFilteredProjects(activeProjects);
       
-      // Filter categories based on actual projects
       const filteredCategories = filterCategoriesByProjects(activeProjects, allDesignCategories);
       setAvailableCategories(filteredCategories);
       
-      // Filter quick filters based on actual projects
       const filteredQuickFilters = filterQuickFiltersByProjects(activeProjects, allQuickFilterCategories);
       setAvailableQuickFilters(filteredQuickFilters);
       
@@ -2363,29 +2524,71 @@ export default function Portfolio() {
         filtered.sort((a, b) => {
           switch (sortBy) {
             case "newest":
-              const yearA = parseInt(a.projectYear) || 0;
-              const yearB = parseInt(b.projectYear) || 0;
-              return yearB - yearA;
+              const yearNewA = parseInt(a.projectYear) || 0;
+              const yearNewB = parseInt(b.projectYear) || 0;
+              if (yearNewB !== yearNewA) return yearNewB - yearNewA;
+              
+              const timeNewA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+              const timeNewB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+              if (timeNewB !== timeNewA) return timeNewB - timeNewA;
+              
+              const createTimeNewA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const createTimeNewB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return createTimeNewB - createTimeNewA;
               
             case "oldest":
-              const yearAOld = parseInt(a.projectYear) || 9999;
-              const yearBOld = parseInt(b.projectYear) || 9999;
-              return yearAOld - yearBOld;
+              const yearOldA = parseInt(a.projectYear) || 9999;
+              const yearOldB = parseInt(b.projectYear) || 9999;
+              if (yearOldA !== yearOldB) return yearOldA - yearOldB;
+              
+              const timeOldA = a.updatedAt ? new Date(a.updatedAt).getTime() : 9999999999999;
+              const timeOldB = b.updatedAt ? new Date(b.updatedAt).getTime() : 9999999999999;
+              if (timeOldA !== timeOldB) return timeOldA - timeOldB;
+              
+              const createTimeOldA = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
+              const createTimeOldB = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
+              return createTimeOldA - createTimeOldB;
               
             case "year_desc":
-              const yearADesc = parseInt(a.projectYear) || 0;
-              const yearBDesc = parseInt(b.projectYear) || 0;
-              return yearBDesc - yearADesc;
+              const yearDescA = parseInt(a.projectYear) || 0;
+              const yearDescB = parseInt(b.projectYear) || 0;
+              if (yearDescB !== yearDescA) return yearDescB - yearDescA;
+              
+              const timeDescA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+              const timeDescB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+              if (timeDescB !== timeDescA) return timeDescB - timeDescA;
+              
+              const createTimeDescA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const createTimeDescB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return createTimeDescB - createTimeDescA;
               
             case "year_asc":
-              const yearAAsc = parseInt(a.projectYear) || 9999;
-              const yearBAsc = parseInt(b.projectYear) || 9999;
-              return yearAAsc - yearBAsc;
+              const yearAscA = parseInt(a.projectYear) || 9999;
+              const yearAscB = parseInt(b.projectYear) || 9999;
+              if (yearAscA !== yearAscB) return yearAscA - yearAscB;
+              
+              const timeAscA = a.updatedAt ? new Date(a.updatedAt).getTime() : 9999999999999;
+              const timeAscB = b.updatedAt ? new Date(b.updatedAt).getTime() : 9999999999999;
+              if (timeAscA !== timeAscB) return timeAscA - timeAscB;
+              
+              const createTimeAscA = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
+              const createTimeAscB = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
+              return createTimeAscA - createTimeAscB;
               
             case "featured":
               if (a.isFeatured && !b.isFeatured) return -1;
               if (!a.isFeatured && b.isFeatured) return 1;
-              return 0;
+              const yearFeatA = parseInt(a.projectYear) || 0;
+              const yearFeatB = parseInt(b.projectYear) || 0;
+              if (yearFeatB !== yearFeatA) return yearFeatB - yearFeatA;
+              
+              const timeFeatA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+              const timeFeatB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+              if (timeFeatB !== timeFeatA) return timeFeatB - timeFeatA;
+              
+              const createTimeFeatA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const createTimeFeatB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return createTimeFeatB - createTimeFeatA;
               
             case "name_asc":
               const nameAAsc = String(a.projectName || "").toLowerCase();
@@ -2397,20 +2600,18 @@ export default function Portfolio() {
               const nameBDesc = String(b.projectName || "").toLowerCase();
               return nameBDesc.localeCompare(nameADesc);
               
-            case "created_at_desc":
-              const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-              const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-              return timeB - timeA;
-              
-            case "created_at_asc":
-              const timeAOldest = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
-              const timeBOldest = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
-              return timeAOldest - timeBOldest;
-              
             default:
-              const orderA = parseInt(a.order) || 999;
-              const orderB = parseInt(b.order) || 999;
-              return orderA - orderB;
+              const yearDefA = parseInt(a.projectYear) || 0;
+              const yearDefB = parseInt(b.projectYear) || 0;
+              if (yearDefB !== yearDefA) return yearDefB - yearDefA;
+              
+              const timeDefA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+              const timeDefB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+              if (timeDefB !== timeDefA) return timeDefB - timeDefA;
+              
+              const createTimeDefA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const createTimeDefB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return createTimeDefB - createTimeDefA;
           }
         });
       }
@@ -2445,7 +2646,7 @@ export default function Portfolio() {
     setShowFilterModal(false);
     
     setTimeout(() => {
-      const element = document.getElementById('projects-grid');
+      const element = document.getElementById('projects-grid-container');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
@@ -2684,14 +2885,10 @@ export default function Portfolio() {
                 scale: { duration: 8, ease: "easeInOut", repeat: Infinity }
               }}
             >
-              <WatermarkedImage
+              <img
                 src={img}
                 alt="Architectural Background"
                 className="w-full h-full object-cover"
-                mode="centered-bottom"
-                watermarkText="DEMORE"
-                opacity={0.18}
-                preserveAspectRatio={true}
               />
             </motion.div>
           ))}
@@ -2860,7 +3057,11 @@ export default function Portfolio() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+            <div 
+              ref={projectsGridRef}
+              id="projects-grid-container"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8"
+            >
               {displayedProjects.map((project, index) => (
                 <ProjectCard 
                   key={project.id} 
@@ -2868,6 +3069,8 @@ export default function Portfolio() {
                   language={language}
                   index={index}
                   designCategories={availableCategories}
+                  onImageLoad={handleProjectImageLoad}
+                  onCardClick={handleProjectCardClick}
                 />
               ))}
             </div>
