@@ -1,5 +1,5 @@
 // src/pages/AdminDashboard.js
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo ,useRef } from "react";
 import { auth, db } from "../firebase";
 import { signOut, onAuthStateChanged, updatePassword, updateProfile } from "firebase/auth";
 import { collection, getDocs, addDoc, deleteDoc, doc, 
@@ -2694,12 +2694,122 @@ export default function AdminDashboard({
   // ==============================
   // ProjectsTabContent
   // ==============================
+
+
 function ProjectsTabContent() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterPageType, setFilterPageType] = useState("all");
     const [filterYear, setFilterYear] = useState("all");
     const [sortBy, setSortBy] = useState("newest");
+    
+    // حفظ موقع التمرير
+    //const scrollPositionRef = useRef(0);
+    // معرف إذا كنا نستعيد الفلاتر من sessionStorage (لمنع الحفظ المؤقت)
+    const isRestoringRef = useRef(false);
+    
+    // ==================== استعادة الفلاتر من sessionStorage عند تحميل المكون ====================
+    useEffect(() => {
+        // استعادة جميع الفلاتر عند تحميل الصفحة
+        const savedSearchTerm = sessionStorage.getItem('projects_searchTerm');
+        const savedFilterStatus = sessionStorage.getItem('projects_filterStatus');
+        const savedFilterPageType = sessionStorage.getItem('projects_filterPageType');
+        const savedFilterYear = sessionStorage.getItem('projects_filterYear');
+        const savedSortBy = sessionStorage.getItem('projects_sortBy');
+        const savedScrollPosition = sessionStorage.getItem('projects_scrollPosition');
+        
+        if (savedSearchTerm !== null) {
+            isRestoringRef.current = true;
+            setSearchTerm(savedSearchTerm);
+        }
+        if (savedFilterStatus !== null) {
+            setFilterStatus(savedFilterStatus);
+        }
+        if (savedFilterPageType !== null) {
+            setFilterPageType(savedFilterPageType);
+        }
+        if (savedFilterYear !== null) {
+            setFilterYear(savedFilterYear);
+        }
+        if (savedSortBy !== null) {
+            setSortBy(savedSortBy);
+        }
+        
+        // استعادة موضع التمرير بعد تحميل المكون
+        if (savedScrollPosition !== null) {
+            setTimeout(() => {
+                window.scrollTo(0, parseInt(savedScrollPosition));
+            }, 100);
+        }
+        
+        // إعادة تعيين علامة الاستعادة بعد فترة قصيرة
+        setTimeout(() => {
+            isRestoringRef.current = false;
+        }, 500);
+    }, []);
+    
+    // ==================== حفظ الفلاتر في sessionStorage عند تغييرها ====================
+    useEffect(() => {
+        // لا نحفظ إذا كنا في وضع الاستعادة
+        if (!isRestoringRef.current) {
+            sessionStorage.setItem('projects_searchTerm', searchTerm);
+        }
+    }, [searchTerm]);
+    
+    useEffect(() => {
+        if (!isRestoringRef.current) {
+            sessionStorage.setItem('projects_filterStatus', filterStatus);
+        }
+    }, [filterStatus]);
+    
+    useEffect(() => {
+        if (!isRestoringRef.current) {
+            sessionStorage.setItem('projects_filterPageType', filterPageType);
+        }
+    }, [filterPageType]);
+    
+    useEffect(() => {
+        if (!isRestoringRef.current) {
+            sessionStorage.setItem('projects_filterYear', filterYear);
+        }
+    }, [filterYear]);
+    
+    useEffect(() => {
+        if (!isRestoringRef.current) {
+            sessionStorage.setItem('projects_sortBy', sortBy);
+        }
+    }, [sortBy]);
+    
+    // ==================== حفظ موضع التمرير ====================
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!isRestoringRef.current) {
+                sessionStorage.setItem('projects_scrollPosition', window.scrollY.toString());
+            }
+        };
+        
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+    
+    // ==================== مسح sessionStorage عند إغلاق التبويب أو تحديث الصفحة ====================
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            // مسح جميع البيانات عند تحديث الصفحة أو إغلاقها
+            sessionStorage.removeItem('projects_searchTerm');
+            sessionStorage.removeItem('projects_filterStatus');
+            sessionStorage.removeItem('projects_filterPageType');
+            sessionStorage.removeItem('projects_filterYear');
+            sessionStorage.removeItem('projects_sortBy');
+            sessionStorage.removeItem('projects_scrollPosition');
+        };
+        
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, []);
     
     // ==================== فئات التصميم من ProjectModal ====================
     const designCategories = useMemo(() => [
@@ -2893,7 +3003,8 @@ function ProjectsTabContent() {
         },
         // خريطة الغرف الداخلية
         interiorRooms: {
-            "مشاريع كاملة": "Full Projects",
+            "مشاريع كاملة": "full_projects",
+            "full_projects": "full_projects",
             "غرفة المعيشة": "living_room",
             "living_room": "living_room",
             "صالون": "salon",
@@ -3235,41 +3346,148 @@ function ProjectsTabContent() {
         return String(value);
     }, [getCategoryString]);
 
+    // دالة للحصول على كل النصوص القابلة للبحث في المشروع
+    const getProjectSearchableText = useCallback((project) => {
+        const searchTexts = [];
+        
+        // اسم المشروع
+        const projectName = safeStringify(project.projectName || project.title, '');
+        if (projectName) searchTexts.push(projectName);
+        
+        // الوصف
+        const description = safeStringify(project.briefDescription || project.description, '');
+        if (description) searchTexts.push(description);
+        
+        // التصنيفات
+        const categoryString = getCategoryString(project.category);
+        if (categoryString) searchTexts.push(categoryString);
+        
+        // التصنيف الرئيسي
+        if (project.category?.mainCategory) {
+            searchTexts.push(project.category.mainCategory);
+            searchTexts.push(getMainCategoryName(project.category.mainCategory));
+        }
+        
+        // التصنيف الفرعي
+        if (project.category?.subCategory) {
+            searchTexts.push(project.category.subCategory);
+            searchTexts.push(getSubCategoryName(project.category.subCategory, project.category.mainCategory));
+        }
+        
+        // التخصص
+        if (project.category?.specialization) {
+            searchTexts.push(project.category.specialization);
+            searchTexts.push(getSpecializationName(project.category.specialization));
+        }
+        
+        // الغرف الداخلية
+        if (project.category?.interiorRooms && Array.isArray(project.category.interiorRooms)) {
+            project.category.interiorRooms.forEach(room => {
+                searchTexts.push(room);
+                searchTexts.push(getInteriorRoomName(room));
+            });
+        }
+        
+        // الغرف التجارية
+        if (project.category?.commercialRooms && Array.isArray(project.category.commercialRooms)) {
+            project.category.commercialRooms.forEach(room => {
+                searchTexts.push(room);
+                searchTexts.push(getCommercialRoomName(room));
+            });
+        }
+        
+        // الأماكن الخارجية
+        if (project.category?.exteriorAreas && Array.isArray(project.category.exteriorAreas)) {
+            project.category.exteriorAreas.forEach(area => {
+                searchTexts.push(area);
+                searchTexts.push(getExteriorAreaName(area));
+            });
+        }
+        
+        // أنماط التصميم
+        if (project.category?.designStyles && Array.isArray(project.category.designStyles)) {
+            project.category.designStyles.forEach(style => {
+                searchTexts.push(style);
+                searchTexts.push(getDesignStyleName(style));
+            });
+        }
+        
+        // السنة
+        const year = project.projectYear || project.year;
+        if (year) searchTexts.push(String(year));
+        
+        // الموقع
+        const location = safeStringify(project.projectLocation || project.location, '');
+        if (location) searchTexts.push(location);
+        
+        // المساحة
+        const area = project.projectArea || project.area;
+        if (area) searchTexts.push(String(area));
+        
+        // الوسوم
+        if (project.tags) {
+            if (project.tags.ar && Array.isArray(project.tags.ar)) {
+                searchTexts.push(...project.tags.ar);
+            }
+            if (project.tags.en && Array.isArray(project.tags.en)) {
+                searchTexts.push(...project.tags.en);
+            }
+            if (Array.isArray(project.tags)) {
+                searchTexts.push(...project.tags);
+            }
+        }
+        
+        // الألوان
+        if (project.selectedColors && Array.isArray(project.selectedColors)) {
+            searchTexts.push(...project.selectedColors);
+        }
+        
+        return searchTexts.join(' ').toLowerCase();
+    }, [
+        safeStringify,
+        getCategoryString,
+        getMainCategoryName,
+        getSubCategoryName,
+        getSpecializationName,
+        getInteriorRoomName,
+        getCommercialRoomName,
+        getExteriorAreaName,
+        getDesignStyleName
+    ]);
+
     // دالة للحصول على السنوات المتاحة من المشاريع
     const getAvailableYears = useCallback(() => {
         const years = new Set();
-        projects.forEach(project => {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const currentProjects = projects || [];
+        currentProjects.forEach(project => {
             const year = project.projectYear || project.year;
             if (year && year !== "بدون تاريخ") {
                 years.add(year);
             }
         });
         return Array.from(years).sort((a, b) => b - a);
-    }, [projects]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
-    // دالة تصفية المشاريع - فلترة تلقائية
+    // دالة تصفية المشاريع - فلترة تلقائية مع بحث شامل
     const filteredProjects = useMemo(() => {
-        return projects.filter(project => {
-            const projectName = safeStringify(project.projectName || project.title, '');
-            const description = safeStringify(project.briefDescription || project.description, '');
-            const categoryString = getCategoryString(project.category);
-            
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const currentProjects = projects || [];
+        
+        return currentProjects.filter(project => {
             // تحديد الصفحة التي يظهر فيها المشروع - القيمة الافتراضية هي "portfolio"
             const projectPageType = project.pageType || "portfolio";
             
             // الحصول على سنة المشروع
             const projectYear = project.projectYear || project.year;
             
-            // فلترة البحث
-            const matchesSearch = searchTerm === "" || 
-                projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                categoryString.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (project.tags && (
-                    (project.tags.ar && project.tags.ar.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) ||
-                    (project.tags.en && project.tags.en.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) ||
-                    (Array.isArray(project.tags) && project.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
-                ));
+            // فلترة البحث الشامل
+            let matchesSearch = true;
+            if (searchTerm !== "") {
+                const searchLower = searchTerm.toLowerCase().trim();
+                const projectSearchText = getProjectSearchableText(project);
+                matchesSearch = projectSearchText.includes(searchLower);
+            }
             
             // فلترة الحالة
             const matchesStatus = filterStatus === "all" ||
@@ -3293,12 +3511,22 @@ function ProjectsTabContent() {
         }).sort((a, b) => {
             switch(sortBy) {
                 case "newest":
-                    const dateA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : new Date(a.createdAt).getTime();
-                    const dateB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : new Date(b.createdAt).getTime();
+                    // ترتيب حسب تاريخ الإضافة (الأحدث أولاً)
+                    const dateA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 
+                                 a.createdAt ? new Date(a.createdAt).getTime() : 
+                                 a.id || 0;
+                    const dateB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 
+                                 b.createdAt ? new Date(b.createdAt).getTime() : 
+                                 b.id || 0;
                     return dateB - dateA;
                 case "oldest":
-                    const dateAOld = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : new Date(a.createdAt).getTime();
-                    const dateBOld = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : new Date(b.createdAt).getTime();
+                    // ترتيب حسب تاريخ الإضافة (الأقدم أولاً)
+                    const dateAOld = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 
+                                    a.createdAt ? new Date(a.createdAt).getTime() : 
+                                    a.id || 0;
+                    const dateBOld = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 
+                                    b.createdAt ? new Date(b.createdAt).getTime() : 
+                                    b.id || 0;
                     return dateAOld - dateBOld;
                 case "name-asc":
                     const nameA = safeStringify(a.projectName || a.title, '');
@@ -3316,16 +3544,14 @@ function ProjectsTabContent() {
                     return 0;
             }
         });
-       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        projects,
         searchTerm,
         filterStatus,
         filterPageType,
         filterYear,
         sortBy,
         safeStringify,
-        getCategoryString
+        getProjectSearchableText
     ]);
 
     // ==================== دوال إنشاء خيارات الفلاتر ====================
@@ -3346,7 +3572,7 @@ function ProjectsTabContent() {
         ];
     }, [getAvailableYears]);
 
-    // ==================== دوال إدارة الفلاتر ====================
+    // ==================== دوال إدارة الفلاتر والتمرير ====================
     
     const resetFilters = () => {
         setSearchTerm("");
@@ -3354,20 +3580,43 @@ function ProjectsTabContent() {
         setFilterPageType("all");
         setFilterYear("all");
         setSortBy("newest");
+        
+        // مسح جميع البيانات المحفوظة من sessionStorage
+        sessionStorage.removeItem('projects_searchTerm');
+        sessionStorage.removeItem('projects_filterStatus');
+        sessionStorage.removeItem('projects_filterPageType');
+        sessionStorage.removeItem('projects_filterYear');
+        sessionStorage.removeItem('projects_sortBy');
+        sessionStorage.removeItem('projects_scrollPosition');
     };
+
+    // دالة معالجة فتح المشروع - نحفظ الفلاتر الحالية قبل الانتقال
+    const handleProjectClick = useCallback((projectId) => {
+        // قبل فتح المشروع، نتأكد من حفظ الفلاتر الحالية
+        sessionStorage.setItem('projects_searchTerm', searchTerm);
+        sessionStorage.setItem('projects_filterStatus', filterStatus);
+        sessionStorage.setItem('projects_filterPageType', filterPageType);
+        sessionStorage.setItem('projects_filterYear', filterYear);
+        sessionStorage.setItem('projects_sortBy', sortBy);
+        sessionStorage.setItem('projects_scrollPosition', window.scrollY.toString());
+        
+        // هنا يمكن إضافة منطق فتح المشروع
+        handleEditProject({ id: projectId });
+    }, [searchTerm, filterStatus, filterPageType, filterYear, sortBy]);
 
     // ==================== حساب الإحصائيات ====================
     const stats = useMemo(() => {
-        return {
-            total: projects.length,
-            active: projects.filter(p => p.isActive).length,
-            inactive: projects.filter(p => !p.isActive).length,
-            featured: projects.filter(p => p.isFeatured).length,
-            portfolio: projects.filter(p => (p.pageType || "portfolio") === "portfolio").length,
-            admin: projects.filter(p => p.pageType === "admin").length
-        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [projects]);
+        const currentProjects = projects || [];
+        return {
+            total: currentProjects.length,
+            active: currentProjects.filter(p => p.isActive).length,
+            inactive: currentProjects.filter(p => !p.isActive).length,
+            featured: currentProjects.filter(p => p.isFeatured).length,
+            portfolio: currentProjects.filter(p => (p.pageType || "portfolio") === "portfolio").length,
+            admin: currentProjects.filter(p => p.pageType === "admin").length
+        };
+    }, []);
     
     // ==================== دالة عرض الوسوم ====================
     const renderTags = useCallback((tags) => {
@@ -3513,7 +3762,7 @@ function ProjectsTabContent() {
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder="ابحث عن مشروع، وصف، أو وسم..."
+                                placeholder="ابحث عن أي شيء في المشاريع (اسم، نوع، غرفة، نمط، سنة، لون...)"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full p-3 pr-12 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900"
@@ -3607,7 +3856,7 @@ function ProjectsTabContent() {
                 {/* عرض عدد النتائج */}
                 {hasActiveFilters && (
                     <div className="mb-4 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
-                        تم العثور على {filteredProjects.length} نتيجة من أصل {projects.length} مشروع
+                        تم العثور على {filteredProjects.length} نتيجة من أصل {stats.total} مشروع
                     </div>
                 )}
 
@@ -3625,7 +3874,11 @@ function ProjectsTabContent() {
                             const location = project.projectLocation || project.location || "غير محدد";
                             
                             return (
-                                <div key={project.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300">
+                                <div 
+                                    key={project.id} 
+                                    className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
+                                    onClick={() => handleProjectClick(project.id)}
+                                >
                                     <div className="relative h-40 sm:h-48 overflow-hidden">
                                         <img 
                                             src={mainImage} 
@@ -3839,7 +4092,7 @@ function ProjectsTabContent() {
                                                 <IconMapPin className="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-slate-400" />
                                                 {location}
                                             </div>
-                                            <div className="flex gap-1 sm:gap-2">
+                                            <div className="flex gap-1 sm:gap-2" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => handleEditProject(project)}
                                                     className="p-1.5 sm:p-2 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded-lg transition-colors"

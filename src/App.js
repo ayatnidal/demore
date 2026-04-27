@@ -1,4 +1,4 @@
-// src/App.js - الإصدار الكامل بعد التعديل مع إضافة مسار projectPhoto
+// src/App.js - الإصدار الكامل بعد التعديل مع إضافة مسار projectPhoto و Mood Board
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { 
   BrowserRouter as Router, 
@@ -29,10 +29,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProjects from "./components/Admin/AdminProjects";
 import Project from "./pages/Project";
 import Login from "./pages/Login";
-
-// استيراد صفحة عرض صور المشروع
-import ProjectPhoto from "./components/Admin/projectPhoto"; // ✅ إضافة استيراد صفحة عرض الصور
-
 // ==============================
 // استيراد صفحات الكتالوج
 // ==============================
@@ -46,6 +42,7 @@ import CurtainsPage from "./components/catalog/CurtainsPage";
 import WoodPage from "./components/catalog/WoodPage";
 import AluminumPage from "./components/catalog/AluminumPage";
 import MarblePage from "./components/catalog/MarblePage";
+import MoodBoardPage from "./components/catalog/MoodBoardPage"; // ✅ استيراد صفحة المود بورد
 
 // ==============================
 // قائمة بمسارات صفحات تفاصيل الكتالوج وصفحة المشروع ولوحة التحكم (حيث نخفي الأزرار العائمة)
@@ -60,6 +57,7 @@ const HIDE_FLOATING_CONTROLS_PATHS = [
   '/components/catalog/WoodPage',
   '/components/catalog/AluminumPage',
   '/components/catalog/MarblePage',
+  '/components/catalog/MoodBoardPage', // ✅ إخفاء الأزرار في صفحة المود بورد التفاصيل
   '/catalog/paint',
   '/catalog/tiles',
   '/catalog/lighting',
@@ -69,11 +67,12 @@ const HIDE_FLOATING_CONTROLS_PATHS = [
   '/catalog/wood',
   '/catalog/aluminum',
   '/catalog/marble',
+  '/catalog/moodboard', // ✅ إخفاء الأزرار في مسار المود بورد المختصر
   '/project/', // إضافة مسار صفحة المشروع (سيتم التحقق باستخدام startsWith)
   '/project',   // إضافة المسار الأساسي للمشاريع
   '/admin',     // إخفاء الأزرار في لوحة التحكم
   '/admin/',    // إخفاء الأزرار في جميع صفحات لوحة التحكم
-  '/admin/project-photo', // ✅ إخفاء الأزرار في صفحة عرض الصور أيضاً (لأنها صفحة داخل الأدمن)
+  '/admin/project-photo', // إخفاء الأزرار في صفحة عرض الصور أيضاً
   // ✅ تم إزالة '/catalog-moodboard' و '/admin-projects' من القائمة ليظهر الـ FloatingControls فيهما
 ];
 
@@ -151,7 +150,7 @@ function AppLayout() {
       return true;
     }
     
-    // ✅ إخفاء الأزرار في صفحة عرض صور المشروع أيضاً
+    // إخفاء الأزرار في صفحة عرض صور المشروع أيضاً
     if (location.pathname.startsWith('/admin/project-photo')) {
       return true;
     }
@@ -216,7 +215,7 @@ function AppLayout() {
       'about-us': '/about',
       'home': '/',
       'contact': '/contact',
-      'catalog': '/catalog'
+      'catalog': '/catalog-moodboard' // ✅ توجيه إلى صفحة المود بورد
     };
     
     if (location.pathname.startsWith('/admin')) {
@@ -758,7 +757,7 @@ function AppLayout() {
         }}
       />
       
-      {/* ✅ إخفاء الأزرار العائمة في صفحات تفاصيل الكتالوج وصفحة المشروع وصفحة الأدمن فقط */}
+      {/* إخفاء الأزرار العائمة في صفحات تفاصيل الكتالوج وصفحة المشروع وصفحة الأدمن فقط */}
       {/* صفحة الكتالوج مودبورد وصفحة AdminProjects ستظهر فيها الأزرار */}
       {!shouldHideFloatingControls && <FloatingControls />}
       
@@ -778,6 +777,10 @@ function AppLayout() {
           {/* ========== صفحات الكتالوج ========== */}
           {/* ✅ صفحة الكتالوج الرئيسية (مودبورد) - ستظهر فيها الأزرار العائمة */}
           <Route path="/catalog-moodboard" element={<CatalogMoodboard />} />
+          
+          {/* ✅ صفحة عرض المود بورد - لن تظهر فيها الأزرار العائمة */}
+          <Route path="/components/catalog/MoodBoardPage" element={<MoodBoardPage />} />
+          <Route path="/catalog/moodboard" element={<MoodBoardPage />} /> {/* مسار مختصر */}
           
           {/* صفحات تفاصيل الكتالوج - لن تظهر فيها الأزرار العائمة */}
           <Route path="/components/catalog/PaintPage" element={<PaintPage />} />
@@ -805,14 +808,6 @@ function AppLayout() {
           {/* ✅ هذه الصفحة ستظهر فيها الأزرار العائمة */}
           <Route path="/admin-projects" element={<AdminProjects userData={userData} />} />
           
-          {/* ========== صفحة عرض صور المشروع (داخل الأدمن) ========== */}
-          {/* ✅ هذه الصفحة لن تظهر فيها الأزرار العائمة */}
-          <Route 
-            path="/admin/project-photo/:id" 
-            element={
-              user ? <ProjectPhoto /> : <Navigate to="/login" replace />
-            } 
-          />
           
           {/* ========== لوحة التحكم ========== */}
           <Route 

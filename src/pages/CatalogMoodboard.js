@@ -66,6 +66,10 @@ export default function CatalogMoodboard() {
     marble: {
       ar: "الرخام",
       en: "Marble"
+    },
+    moodboard: {
+      ar: "مود بورد",
+      en: "Mood Board"
     }
   };
 
@@ -159,7 +163,17 @@ export default function CatalogMoodboard() {
       labelPosition: 'top-right',
       labelBg: 'bg-white/80',
       labelTextColor: 'text-[#3e3a36]',
-      imageSize: 'aspect-[4/3]'
+      imageSize: 'aspect-[3/4]' // Changed from aspect-[4/3] to make it smaller
+    },
+    {
+      id: 'moodboard',
+      path: '/components/catalog/MoodBoardPage',
+      image: '/images/moodboard.jpg',
+      gridArea: 'moodboard',
+      labelPosition: 'top-right',
+      labelBg: 'bg-white/40',
+      labelTextColor: 'text-[#3e3a36]',
+      imageSize: 'aspect-[3/4]'
     }
   ];
 
@@ -360,7 +374,7 @@ export default function CatalogMoodboard() {
           {/* Parquet */}
           <motion.div 
             variants={itemVariants}
-            className="col-span-1 row-span-1 md:col-span-1 md:row-span- lg:col-span-1 lg:row-span-1 md:col-start-2 lg:col-start-2 md:row-start-3 lg:row-start-1"
+            className="col-span-2 row-span-1 md:col-span-1 md:row-span- lg:col-span-1 lg:row-span-1 md:col-start-2 lg:col-start-2 md:row-start-3 lg:row-start-1"
             onHoverStart={() => setHoveredItem('parquet')}
             onHoverEnd={() => setHoveredItem(null)}
           >
@@ -377,7 +391,7 @@ export default function CatalogMoodboard() {
           {/* Gypsum */}
           <motion.div 
             variants={itemVariants}
-            className="col-span-2 row-span-1 md:col-span-2 md:row-span-1 lg:col-span-1 lg:row-span-1 md:col-start-2 lg:col-start-4 md:row-start-4 lg:row-start-1"
+            className="col-span-2 row-span-1 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 md:col-start-3 lg:col-start-4 md:row-start-4 lg:row-start-1"
             onHoverStart={() => setHoveredItem('gypsum')}
             onHoverEnd={() => setHoveredItem(null)}
           >
@@ -442,10 +456,10 @@ export default function CatalogMoodboard() {
             />
           </motion.div>
 
-          {/* Marble */}
+          {/* Marble - Made smaller with col-span-1 and row-span-1 */}
           <motion.div 
             variants={itemVariants}
-            className="col-span-2 row-span-1 row-start-3 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-3 md:col-start-3 lg:col-start-3 md:row-start-3 lg:row-start-1"
+            className="col-span-1 row-span-1 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 md:col-start-3 lg:col-start-3 md:row-start-3 lg:row-start-1"
             onHoverStart={() => setHoveredItem('marble')}
             onHoverEnd={() => setHoveredItem(null)}
           >
@@ -456,6 +470,23 @@ export default function CatalogMoodboard() {
               getLabelPosition={getLabelPosition} 
               isRTL={isRTL}
               isHovered={hoveredItem === 'marble'}
+            />
+          </motion.div>
+
+          {/* Mood Board - Placed under Marble */}
+          <motion.div 
+            variants={itemVariants}
+            className="col-span-1 row-span-1 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 md:col-start-2 lg:col-start-3 md:row-start-4 lg:row-start-2"
+            onHoverStart={() => setHoveredItem('moodboard')}
+            onHoverEnd={() => setHoveredItem(null)}
+          >
+            <CatalogItem 
+              item={catalogItems[9]} 
+              language={language} 
+              content={content} 
+              getLabelPosition={getLabelPosition} 
+              isRTL={isRTL}
+              isHovered={hoveredItem === 'moodboard'}
             />
           </motion.div>
         </div>
