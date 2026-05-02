@@ -2696,1479 +2696,1493 @@ export default function AdminDashboard({
   // ==============================
 
 
-function ProjectsTabContent() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filterStatus, setFilterStatus] = useState("all");
-    const [filterPageType, setFilterPageType] = useState("all");
-    const [filterYear, setFilterYear] = useState("all");
-    const [sortBy, setSortBy] = useState("newest");
-    
-    // حفظ موقع التمرير
-    //const scrollPositionRef = useRef(0);
-    // معرف إذا كنا نستعيد الفلاتر من sessionStorage (لمنع الحفظ المؤقت)
-    const isRestoringRef = useRef(false);
-    
-    // ==================== استعادة الفلاتر من sessionStorage عند تحميل المكون ====================
-    useEffect(() => {
-        // استعادة جميع الفلاتر عند تحميل الصفحة
-        const savedSearchTerm = sessionStorage.getItem('projects_searchTerm');
-        const savedFilterStatus = sessionStorage.getItem('projects_filterStatus');
-        const savedFilterPageType = sessionStorage.getItem('projects_filterPageType');
-        const savedFilterYear = sessionStorage.getItem('projects_filterYear');
-        const savedSortBy = sessionStorage.getItem('projects_sortBy');
-        const savedScrollPosition = sessionStorage.getItem('projects_scrollPosition');
-        
-        if (savedSearchTerm !== null) {
-            isRestoringRef.current = true;
-            setSearchTerm(savedSearchTerm);
-        }
-        if (savedFilterStatus !== null) {
-            setFilterStatus(savedFilterStatus);
-        }
-        if (savedFilterPageType !== null) {
-            setFilterPageType(savedFilterPageType);
-        }
-        if (savedFilterYear !== null) {
-            setFilterYear(savedFilterYear);
-        }
-        if (savedSortBy !== null) {
-            setSortBy(savedSortBy);
-        }
-        
-        // استعادة موضع التمرير بعد تحميل المكون
-        if (savedScrollPosition !== null) {
-            setTimeout(() => {
-                window.scrollTo(0, parseInt(savedScrollPosition));
-            }, 100);
-        }
-        
-        // إعادة تعيين علامة الاستعادة بعد فترة قصيرة
-        setTimeout(() => {
-            isRestoringRef.current = false;
-        }, 500);
-    }, []);
-    
-    // ==================== حفظ الفلاتر في sessionStorage عند تغييرها ====================
-    useEffect(() => {
-        // لا نحفظ إذا كنا في وضع الاستعادة
-        if (!isRestoringRef.current) {
-            sessionStorage.setItem('projects_searchTerm', searchTerm);
-        }
-    }, [searchTerm]);
-    
-    useEffect(() => {
-        if (!isRestoringRef.current) {
-            sessionStorage.setItem('projects_filterStatus', filterStatus);
-        }
-    }, [filterStatus]);
-    
-    useEffect(() => {
-        if (!isRestoringRef.current) {
-            sessionStorage.setItem('projects_filterPageType', filterPageType);
-        }
-    }, [filterPageType]);
-    
-    useEffect(() => {
-        if (!isRestoringRef.current) {
-            sessionStorage.setItem('projects_filterYear', filterYear);
-        }
-    }, [filterYear]);
-    
-    useEffect(() => {
-        if (!isRestoringRef.current) {
-            sessionStorage.setItem('projects_sortBy', sortBy);
-        }
-    }, [sortBy]);
-    
-    // ==================== حفظ موضع التمرير ====================
-    useEffect(() => {
-        const handleScroll = () => {
-            if (!isRestoringRef.current) {
-                sessionStorage.setItem('projects_scrollPosition', window.scrollY.toString());
-            }
-        };
-        
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-    
-    // ==================== مسح sessionStorage عند إغلاق التبويب أو تحديث الصفحة ====================
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            // مسح جميع البيانات عند تحديث الصفحة أو إغلاقها
-            sessionStorage.removeItem('projects_searchTerm');
-            sessionStorage.removeItem('projects_filterStatus');
-            sessionStorage.removeItem('projects_filterPageType');
-            sessionStorage.removeItem('projects_filterYear');
-            sessionStorage.removeItem('projects_sortBy');
-            sessionStorage.removeItem('projects_scrollPosition');
-        };
-        
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, []);
-    
-    // ==================== فئات التصميم من ProjectModal ====================
-    const designCategories = useMemo(() => [
-        // تصنيفات سكنية
-        { 
-            id: "residential", 
-            name: { ar: "سكني", en: "Residential" },
-            subcategories: [
-                { id: "apartments", name: { ar: "شقق", en: "Apartments" } },
-                { id: "villas", name: { ar: "فلل", en: "Villas" } },
-                { id: "duplex", name: { ar: "دوبلكس", en: "Duplex" } },
-                { id: "townhouse", name: { ar: "تاون هاوس", en: "Townhouse" } },
-                { id: "penthouse", name: { ar: "بنتهاوس", en: "Penthouse" } },
-                { id: "studios", name: { ar: "إستوديوهات", en: "Studios" } },
-                { id: "chalets", name: { ar: "شاليهات", en: "Chalets" } },
-                { id: "cabin", name: { ar: "كوخ", en: "Cabin" } },
-                { id: "roof", name: { ar: "روف", en: "Roof" } },
-            ]
-        },
-        // تصنيفات تجارية
-        { 
-            id: "commercial", 
-            name: { ar: "تجاري", en: "Commercial" },
-            subcategories: [
-                { id: "offices", name: { ar: "مكاتب", en: "Offices" } },
-                { id: "stores", name: { ar: "متاجر", en: "Stores" } },
-                { id: "restaurants", name: { ar: "مطاعم", en: "Restaurants" } },
-                { id: "cafes", name: { ar: "مقاهي", en: "Cafes" } },
-                { id: "showrooms", name: { ar: "معارض", en: "Showrooms" } },
-                { id: "clinics", name: { ar: "عيادات", en: "Clinics" } },
-                { id: "salons", name: { ar: "صالونات", en: "Salons" } },
-                { id: "hotels", name: { ar: "فنادق", en: "Hotels" } },
-                { id: "gyms", name: { ar: "صالات رياضية", en: "Gyms" } },
-                { id: "schools", name: { ar: "مدارس", en: "Schools" } }
-            ]
-        },
-        // التخصصات (داخلي/خارجي/لاندسكيب)
-        { 
-            id: "specializations", 
-            name: { ar: "التخصصات", en: "Specializations" },
-            subcategories: [
-                { id: "interior", name: { ar: "داخلي", en: "Interior" } },
-                { id: "exterior", name: { ar: "خارجي", en: "Exterior" } },
-                { id: "landscape", name: { ar: "لاندسكيب", en: "Landscape" } },
-                { id: "both", name: { ar: "داخلي وخارجي", en: "Interior & Exterior" } }
-            ]
-        },
-        // أنواع الغرف الداخلية (مطابقة تماماً مع ProjectModal)
-        { 
-            id: "interior_rooms", 
-            name: { ar: "الغرف الداخلية", en: "Interior Rooms" },
-            subcategories: [
-                { id: "full_projects", name: { ar: "مشاريع كاملة", en: "Full Projects" } },
-                { id: "living_room", name: { ar: "غرفة المعيشة", en: "Living Room" } },
-                { id: "salon", name: { ar: "صالون", en: "Salon" } },
-                { id: "kitchen", name: { ar: "مطبخ", en: "Kitchen" } },
-                { id: "dining_room", name: { ar: "غرفة الطعام", en: "Dining Room" } },
-                { id: "bathroom", name: { ar: "حمام", en: "Bathroom" } },
-                { id: "home_office", name: { ar: "مكتب منزلي", en: "Home Office" } },
-                { id: "master_bedroom", name: { ar: "غرفة نوم رئيسية", en: "Master Bedroom" } },
-                { id: "children_room", name: { ar: "غرفة أطفال", en: "Children's Room" } },
-                { id: "guest_room", name: { ar: "غرفة ضيوف", en: "Guest Room" } },
-                { id: "library", name: { ar: "مكتبة", en: "Library" } },
-                { id: "Boys_Bedroom", name: { ar: "غرفة نوم الاولاد", en: "Boys' Bedroom" } },
-                { id: "Girls_Bedroom", name: { ar: "غرفة نوم البنات", en: "Girls' Bedroom" } },
-                { id: "Second_Bedroom", name: { ar: "غرفة نوم ثانوية", en: "Second Bedroom" } },
-                { id: "prayer_room", name: { ar: "غرفة صلاة", en: "Prayer Room" } },
-                { id: "dressing_room", name: { ar: "غرفة ملابس", en: "Dressing Room" } },
-                { id: "laundry_room", name: { ar: "غرفة غسيل", en: "Laundry Room" } },
-                { id: "storage_room", name: { ar: "غرفة تخزين", en: "Storage Room" } }
-            ]
-        },
-        // الغرف التجارية (مطابقة تماماً مع ProjectModal)
-        { 
-            id: "commercial_rooms", 
-            name: { ar: "الغرف التجارية", en: "Commercial Rooms" },
-            subcategories: [
-                { id: "commercial_reception", name: { ar: "استقبال", en: "Reception" } },
-                { id: "commercial_waiting", name: { ar: "غرفة انتظار", en: "Waiting Room" } },
-                { id: "commercial_conference", name: { ar: "غرفة اجتماعات", en: "Conference Room" } },
-                { id: "commercial_manager", name: { ar: "غرفة مدير", en: "Manager's Room" } },
-                { id: "commercial_bathroom", name: { ar: "حمام تجاري", en: "Commercial Bathroom" } },
-                { id: "commercial_kitchen", name: { ar: "مطبخ تجاري", en: "Commercial Kitchen" } },
-                { id: "commercial_storage", name: { ar: "مخزن تجاري", en: "Commercial Storage" } }
-            ]
-        },
-        // الأماكن الخارجية (مطابقة تماماً مع ProjectModal)
-        { 
-            id: "exterior_areas", 
-            name: { ar: "الأماكن الخارجية", en: "Exterior Areas" },
-            subcategories: [
-                { id: "facade", name: { ar: "واجهة", en: "Facade" } },
-                { id: "garden", name: { ar: "حديقة", en: "Garden" } },
-                { id: "swimming_pool", name: { ar: "مسبح", en: "Swimming Pool" } },
-                { id: "terrace", name: { ar: "تراس", en: "Terrace" } },
-                { id: "balcony", name: { ar: "بلكونة", en: "Balcony" } },
-                { id: "patio", name: { ar: "فناء", en: "Patio" } },
-                { id: "driveway", name: { ar: "مدخل سيارات", en: "Driveway" } },
-                { id: "parking", name: { ar: "موقف سيارات", en: "Parking" } },
-                { id: "fence", name: { ar: "سياج", en: "Fence" } },
-                { id: "gazebo", name: { ar: "جازيبو", en: "Gazebo" } },
-                { id: "outdoor_kitchen", name: { ar: "مطبخ خارجي", en: "Outdoor Kitchen" } },
-                { id: "fire_pit", name: { ar: "مشعل نار", en: "Fire Pit" } },
-                { id: "walkway", name: { ar: "ممشى", en: "Walkway" } }
-            ]
-        },
-        // أنماط التصميم (مطابقة تماماً مع ProjectModal)
-        { 
-            id: "design_styles", 
-            name: { ar: "أنماط التصميم", en: "Design Styles" },
-            subcategories: [
-                { id: "modern", name: { ar: "عصري", en: "Modern" } },
-                { id: "classic", name: { ar: "كلاسيكي", en: "Classic" } },
-                { id: "minimalist", name: { ar: "بسيط", en: "Minimalist" } },
-                { id: "luxury", name: { ar: "فاخر", en: "Luxury" } },
-                { id: "traditional", name: { ar: "تقليدي", en: "Traditional" } },
-                { id: "contemporary", name: { ar: "معاصر", en: "Contemporary" } },
-                { id: "industrial", name: { ar: "صناعي", en: "Industrial" } },
-                { id: "scandinavian", name: { ar: "سكاندينافي", en: "Scandinavian" } },
-                { id: "rustic", name: { ar: "ريفي", en: "Rustic" } },
-                { id: "mediterranean", name: { ar: "بحر متوسط", en: "Mediterranean" } },
-                { id: "art_deco", name: { ar: "آرت ديكو", en: "Art Deco" } },
-                { id: "bohemian", name: { ar: "بوهيمي", en: "Bohemian" } }
-            ]
-        }
-    ], []);
+  function ProjectsTabContent() {
+      const [searchTerm, setSearchTerm] = useState("");
+      const [filterStatus, setFilterStatus] = useState("all");
+      const [filterPageType, setFilterPageType] = useState("all");
+      const [filterYear, setFilterYear] = useState("all");
+      const [sortBy, setSortBy] = useState("newest");
+      const [selectedViewProject, setSelectedViewProject] = useState(null); // ✅ إضافة حالة لعرض المشروع
+      
+      // حفظ موقع التمرير
+      //const scrollPositionRef = useRef(0);
+      // معرف إذا كنا نستعيد الفلاتر من sessionStorage (لمنع الحفظ المؤقت)
+      const isRestoringRef = useRef(false);
+      
+      // ==================== استعادة الفلاتر من sessionStorage عند تحميل المكون ====================
+      useEffect(() => {
+          // استعادة جميع الفلاتر عند تحميل الصفحة
+          const savedSearchTerm = sessionStorage.getItem('projects_searchTerm');
+          const savedFilterStatus = sessionStorage.getItem('projects_filterStatus');
+          const savedFilterPageType = sessionStorage.getItem('projects_filterPageType');
+          const savedFilterYear = sessionStorage.getItem('projects_filterYear');
+          const savedSortBy = sessionStorage.getItem('projects_sortBy');
+          const savedScrollPosition = sessionStorage.getItem('projects_scrollPosition');
+          
+          if (savedSearchTerm !== null) {
+              isRestoringRef.current = true;
+              setSearchTerm(savedSearchTerm);
+          }
+          if (savedFilterStatus !== null) {
+              setFilterStatus(savedFilterStatus);
+          }
+          if (savedFilterPageType !== null) {
+              setFilterPageType(savedFilterPageType);
+          }
+          if (savedFilterYear !== null) {
+              setFilterYear(savedFilterYear);
+          }
+          if (savedSortBy !== null) {
+              setSortBy(savedSortBy);
+          }
+          
+          // استعادة موضع التمرير بعد تحميل المكون
+          if (savedScrollPosition !== null) {
+              setTimeout(() => {
+                  window.scrollTo(0, parseInt(savedScrollPosition));
+              }, 100);
+          }
+          
+          // إعادة تعيين علامة الاستعادة بعد فترة قصيرة
+          setTimeout(() => {
+              isRestoringRef.current = false;
+          }, 500);
+      }, []);
+      
+      // ==================== حفظ الفلاتر في sessionStorage عند تغييرها ====================
+      useEffect(() => {
+          // لا نحفظ إذا كنا في وضع الاستعادة
+          if (!isRestoringRef.current) {
+              sessionStorage.setItem('projects_searchTerm', searchTerm);
+          }
+      }, [searchTerm]);
+      
+      useEffect(() => {
+          if (!isRestoringRef.current) {
+              sessionStorage.setItem('projects_filterStatus', filterStatus);
+          }
+      }, [filterStatus]);
+      
+      useEffect(() => {
+          if (!isRestoringRef.current) {
+              sessionStorage.setItem('projects_filterPageType', filterPageType);
+          }
+      }, [filterPageType]);
+      
+      useEffect(() => {
+          if (!isRestoringRef.current) {
+              sessionStorage.setItem('projects_filterYear', filterYear);
+          }
+      }, [filterYear]);
+      
+      useEffect(() => {
+          if (!isRestoringRef.current) {
+              sessionStorage.setItem('projects_sortBy', sortBy);
+          }
+      }, [sortBy]);
+      
+      // ==================== حفظ موضع التمرير ====================
+      useEffect(() => {
+          const handleScroll = () => {
+              if (!isRestoringRef.current) {
+                  sessionStorage.setItem('projects_scrollPosition', window.scrollY.toString());
+              }
+          };
+          
+          window.addEventListener('scroll', handleScroll);
+          return () => window.removeEventListener('scroll', handleScroll);
+      }, []);
+      
+      // ==================== مسح sessionStorage عند إغلاق التبويب أو تحديث الصفحة ====================
+      useEffect(() => {
+          const handleBeforeUnload = () => {
+              // مسح جميع البيانات عند تحديث الصفحة أو إغلاقها
+              sessionStorage.removeItem('projects_searchTerm');
+              sessionStorage.removeItem('projects_filterStatus');
+              sessionStorage.removeItem('projects_filterPageType');
+              sessionStorage.removeItem('projects_filterYear');
+              sessionStorage.removeItem('projects_sortBy');
+              sessionStorage.removeItem('projects_scrollPosition');
+          };
+          
+          window.addEventListener('beforeunload', handleBeforeUnload);
+          
+          return () => {
+              window.removeEventListener('beforeunload', handleBeforeUnload);
+          };
+      }, []);
+      
+      // ==================== دالة إغلاق عرض المشروع ====================
+      const closeProjectView = useCallback(() => {
+          setSelectedViewProject(null);
+      }, []);
+      
+      // ==================== فئات التصميم من ProjectModal ====================
+      const designCategories = useMemo(() => [
+          // تصنيفات سكنية
+          { 
+              id: "residential", 
+              name: { ar: "سكني", en: "Residential" },
+              subcategories: [
+                  { id: "apartments", name: { ar: "شقق", en: "Apartments" } },
+                  { id: "villas", name: { ar: "فلل", en: "Villas" } },
+                  { id: "duplex", name: { ar: "دوبلكس", en: "Duplex" } },
+                  { id: "townhouse", name: { ar: "تاون هاوس", en: "Townhouse" } },
+                  { id: "penthouse", name: { ar: "بنتهاوس", en: "Penthouse" } },
+                  { id: "studios", name: { ar: "إستوديوهات", en: "Studios" } },
+                  { id: "chalets", name: { ar: "شاليهات", en: "Chalets" } },
+                  { id: "cabin", name: { ar: "كوخ", en: "Cabin" } },
+                  { id: "roof", name: { ar: "روف", en: "Roof" } },
+              ]
+          },
+          // تصنيفات تجارية
+          { 
+              id: "commercial", 
+              name: { ar: "تجاري", en: "Commercial" },
+              subcategories: [
+                  { id: "offices", name: { ar: "مكاتب", en: "Offices" } },
+                  { id: "stores", name: { ar: "متاجر", en: "Stores" } },
+                  { id: "restaurants", name: { ar: "مطاعم", en: "Restaurants" } },
+                  { id: "cafes", name: { ar: "مقاهي", en: "Cafes" } },
+                  { id: "showrooms", name: { ar: "معارض", en: "Showrooms" } },
+                  { id: "clinics", name: { ar: "عيادات", en: "Clinics" } },
+                  { id: "salons", name: { ar: "صالونات", en: "Salons" } },
+                  { id: "hotels", name: { ar: "فنادق", en: "Hotels" } },
+                  { id: "gyms", name: { ar: "صالات رياضية", en: "Gyms" } },
+                  { id: "schools", name: { ar: "مدارس", en: "Schools" } }
+              ]
+          },
+          // التخصصات (داخلي/خارجي/لاندسكيب)
+          { 
+              id: "specializations", 
+              name: { ar: "التخصصات", en: "Specializations" },
+              subcategories: [
+                  { id: "interior", name: { ar: "داخلي", en: "Interior" } },
+                  { id: "exterior", name: { ar: "خارجي", en: "Exterior" } },
+                  { id: "landscape", name: { ar: "لاندسكيب", en: "Landscape" } },
+                  { id: "both", name: { ar: "داخلي وخارجي", en: "Interior & Exterior" } }
+              ]
+          },
+          // أنواع الغرف الداخلية (مطابقة تماماً مع ProjectModal)
+          { 
+              id: "interior_rooms", 
+              name: { ar: "الغرف الداخلية", en: "Interior Rooms" },
+              subcategories: [
+                  { id: "full_projects", name: { ar: "مشاريع كاملة", en: "Full Projects" } },
+                  { id: "living_room", name: { ar: "غرفة المعيشة", en: "Living Room" } },
+                  { id: "salon", name: { ar: "صالون", en: "Salon" } },
+                  { id: "kitchen", name: { ar: "مطبخ", en: "Kitchen" } },
+                  { id: "dining_room", name: { ar: "غرفة الطعام", en: "Dining Room" } },
+                  { id: "bathroom", name: { ar: "حمام", en: "Bathroom" } },
+                  { id: "home_office", name: { ar: "مكتب منزلي", en: "Home Office" } },
+                  { id: "master_bedroom", name: { ar: "غرفة نوم رئيسية", en: "Master Bedroom" } },
+                  { id: "children_room", name: { ar: "غرفة أطفال", en: "Children's Room" } },
+                  { id: "guest_room", name: { ar: "غرفة ضيوف", en: "Guest Room" } },
+                  { id: "library", name: { ar: "مكتبة", en: "Library" } },
+                  { id: "Boys_Bedroom", name: { ar: "غرفة نوم الاولاد", en: "Boys' Bedroom" } },
+                  { id: "Girls_Bedroom", name: { ar: "غرفة نوم البنات", en: "Girls' Bedroom" } },
+                  { id: "Second_Bedroom", name: { ar: "غرفة نوم ثانوية", en: "Second Bedroom" } },
+                  { id: "prayer_room", name: { ar: "غرفة صلاة", en: "Prayer Room" } },
+                  { id: "dressing_room", name: { ar: "غرفة ملابس", en: "Dressing Room" } },
+                  { id: "laundry_room", name: { ar: "غرفة غسيل", en: "Laundry Room" } },
+                  { id: "storage_room", name: { ar: "غرفة تخزين", en: "Storage Room" } }
+              ]
+          },
+          // الغرف التجارية (مطابقة تماماً مع ProjectModal)
+          { 
+              id: "commercial_rooms", 
+              name: { ar: "الغرف التجارية", en: "Commercial Rooms" },
+              subcategories: [
+                  { id: "commercial_reception", name: { ar: "استقبال", en: "Reception" } },
+                  { id: "commercial_waiting", name: { ar: "غرفة انتظار", en: "Waiting Room" } },
+                  { id: "commercial_conference", name: { ar: "غرفة اجتماعات", en: "Conference Room" } },
+                  { id: "commercial_manager", name: { ar: "غرفة مدير", en: "Manager's Room" } },
+                  { id: "commercial_bathroom", name: { ar: "حمام تجاري", en: "Commercial Bathroom" } },
+                  { id: "commercial_kitchen", name: { ar: "مطبخ تجاري", en: "Commercial Kitchen" } },
+                  { id: "commercial_storage", name: { ar: "مخزن تجاري", en: "Commercial Storage" } }
+              ]
+          },
+          // الأماكن الخارجية (مطابقة تماماً مع ProjectModal)
+          { 
+              id: "exterior_areas", 
+              name: { ar: "الأماكن الخارجية", en: "Exterior Areas" },
+              subcategories: [
+                  { id: "facade", name: { ar: "واجهة", en: "Facade" } },
+                  { id: "garden", name: { ar: "حديقة", en: "Garden" } },
+                  { id: "swimming_pool", name: { ar: "مسبح", en: "Swimming Pool" } },
+                  { id: "terrace", name: { ar: "تراس", en: "Terrace" } },
+                  { id: "balcony", name: { ar: "بلكونة", en: "Balcony" } },
+                  { id: "patio", name: { ar: "فناء", en: "Patio" } },
+                  { id: "driveway", name: { ar: "مدخل سيارات", en: "Driveway" } },
+                  { id: "parking", name: { ar: "موقف سيارات", en: "Parking" } },
+                  { id: "fence", name: { ar: "سياج", en: "Fence" } },
+                  { id: "gazebo", name: { ar: "جازيبو", en: "Gazebo" } },
+                  { id: "outdoor_kitchen", name: { ar: "مطبخ خارجي", en: "Outdoor Kitchen" } },
+                  { id: "fire_pit", name: { ar: "مشعل نار", en: "Fire Pit" } },
+                  { id: "walkway", name: { ar: "ممشى", en: "Walkway" } }
+              ]
+          },
+          // أنماط التصميم (مطابقة تماماً مع ProjectModal)
+          { 
+              id: "design_styles", 
+              name: { ar: "أنماط التصميم", en: "Design Styles" },
+              subcategories: [
+                  { id: "modern", name: { ar: "عصري", en: "Modern" } },
+                  { id: "classic", name: { ar: "كلاسيكي", en: "Classic" } },
+                  { id: "minimalist", name: { ar: "بسيط", en: "Minimalist" } },
+                  { id: "luxury", name: { ar: "فاخر", en: "Luxury" } },
+                  { id: "traditional", name: { ar: "تقليدي", en: "Traditional" } },
+                  { id: "contemporary", name: { ar: "معاصر", en: "Contemporary" } },
+                  { id: "industrial", name: { ar: "صناعي", en: "Industrial" } },
+                  { id: "scandinavian", name: { ar: "سكاندينافي", en: "Scandinavian" } },
+                  { id: "rustic", name: { ar: "ريفي", en: "Rustic" } },
+                  { id: "mediterranean", name: { ar: "بحر متوسط", en: "Mediterranean" } },
+                  { id: "art_deco", name: { ar: "آرت ديكو", en: "Art Deco" } },
+                  { id: "bohemian", name: { ar: "بوهيمي", en: "Bohemian" } }
+              ]
+          }
+      ], []);
 
-    // ==================== خريطة تحويل شاملة (مطابقة لـ normalizeCategories في ProjectModal) ====================
-    const categoryMapping = useMemo(() => ({
-        // خريطة mainCategory
-        mainCategory: {
-            "سكني": "residential",
-            "residential": "residential",
-            "تجاري": "commercial",
-            "commercial": "commercial"
-        },
-        // خريطة subCategory للمشاريع السكنية
-        subCategoryResidential: {
-            "شقق": "apartments",
-            "apartments": "apartments",
-            "فلل": "villas",
-            "villas": "villas",
-            "دوبلكس": "duplex",
-            "duplex": "duplex",
-            "تاون هاوس": "townhouse",
-            "townhouse": "townhouse",
-            "بنتهاوس": "penthouse",
-            "penthouse": "penthouse",
-            "إستوديوهات": "studios",
-            "studios": "studios",
-            "شاليهات": "chalets",
-            "chalets": "chalets",
-            "كوخ": "cabin",
-            "cabin": "cabin",
-            "روف": "roof",
-            "roof": "roof"
-        },
-        // خريطة subCategory للمشاريع التجارية
-        subCategoryCommercial: {
-            "مكاتب": "offices",
-            "offices": "offices",
-            "متاجر": "stores",
-            "stores": "stores",
-            "مطاعم": "restaurants",
-            "restaurants": "restaurants",
-            "مقاهي": "cafes",
-            "cafes": "cafes",
-            "معارض": "showrooms",
-            "showrooms": "showrooms",
-            "عيادات": "clinics",
-            "clinics": "clinics",
-            "صالونات": "salons",
-            "salons": "salons",
-            "فنادق": "hotels",
-            "hotels": "hotels",
-            "صالات رياضية": "gyms",
-            "gyms": "gyms",
-            "مدارس": "schools",
-            "schools": "schools"
-        },
-        // خريطة specialization
-        specialization: {
-            "داخلي": "interior",
-            "interior": "interior",
-            "خارجي": "exterior",
-            "exterior": "exterior",
-            "لاندسكيب": "landscape",
-            "landscape": "landscape",
-            "داخلي وخارجي": "both",
-            "both": "both"
-        },
-        // خريطة الغرف الداخلية
-        interiorRooms: {
-            "مشاريع كاملة": "full_projects",
-            "full_projects": "full_projects",
-            "غرفة المعيشة": "living_room",
-            "living_room": "living_room",
-            "صالون": "salon",
-            "salon": "salon",
-            "مطبخ": "kitchen",
-            "kitchen": "kitchen",
-            "غرفة الطعام": "dining_room",
-            "dining_room": "dining_room",
-            "حمام": "bathroom",
-            "bathroom": "bathroom",
-            "مكتب منزلي": "home_office",
-            "home_office": "home_office",
-            "غرفة نوم رئيسية": "master_bedroom",
-            "master_bedroom": "master_bedroom",
-            "غرفة أطفال": "children_room",
-            "children_room": "children_room",
-            "غرفة ضيوف": "guest_room",
-            "guest_room": "guest_room",
-            "مكتبة": "library",
-            "library": "library",
-            "غرفة نوم الاولاد": "Boys_Bedroom",
-            "Boys_Bedroom": "Boys_Bedroom",
-            "غرفة نوم البنات": "Girls_Bedroom",
-            "Girls_Bedroom": "Girls_Bedroom",
-            "غرفة نوم ثانوية": "Second_Bedroom",
-            "Second_Bedroom": "Second_Bedroom",
-            "غرفة صلاة": "prayer_room",
-            "prayer_room": "prayer_room",
-            "غرفة ملابس": "dressing_room",
-            "dressing_room": "dressing_room",
-            "غرفة غسيل": "laundry_room",
-            "laundry_room": "laundry_room",
-            "غرفة تخزين": "storage_room",
-            "storage_room": "storage_room"
-        },
-        // خريطة الغرف التجارية
-        commercialRooms: {
-            "استقبال": "commercial_reception",
-            "commercial_reception": "commercial_reception",
-            "غرفة انتظار": "commercial_waiting",
-            "commercial_waiting": "commercial_waiting",
-            "غرفة اجتماعات": "commercial_conference",
-            "commercial_conference": "commercial_conference",
-            "غرفة مدير": "commercial_manager",
-            "commercial_manager": "commercial_manager",
-            "حمام تجاري": "commercial_bathroom",
-            "commercial_bathroom": "commercial_bathroom",
-            "مطبخ تجاري": "commercial_kitchen",
-            "commercial_kitchen": "commercial_kitchen",
-            "مخزن تجاري": "commercial_storage",
-            "commercial_storage": "commercial_storage"
-        },
-        // خريطة الأماكن الخارجية
-        exteriorAreas: {
-            "واجهة": "facade",
-            "facade": "facade",
-            "حديقة": "garden",
-            "garden": "garden",
-            "مسبح": "swimming_pool",
-            "swimming_pool": "swimming_pool",
-            "تراس": "terrace",
-            "terrace": "terrace",
-            "بلكونة": "balcony",
-            "balcony": "balcony",
-            "فناء": "patio",
-            "patio": "patio",
-            "مدخل سيارات": "driveway",
-            "driveway": "driveway",
-            "موقف سيارات": "parking",
-            "parking": "parking",
-            "سياج": "fence",
-            "fence": "fence",
-            "جازيبو": "gazebo",
-            "gazebo": "gazebo",
-            "مطبخ خارجي": "outdoor_kitchen",
-            "outdoor_kitchen": "outdoor_kitchen",
-            "مشعل نار": "fire_pit",
-            "fire_pit": "fire_pit",
-            "ممشى": "walkway",
-            "walkway": "walkway"
-        },
-        // خريطة أنماط التصميم
-        designStyles: {
-            "عصري": "modern",
-            "modern": "modern",
-            "كلاسيكي": "classic",
-            "classic": "classic",
-            "بسيط": "minimalist",
-            "minimalist": "minimalist",
-            "فاخر": "luxury",
-            "luxury": "luxury",
-            "تقليدي": "traditional",
-            "traditional": "traditional",
-            "معاصر": "contemporary",
-            "contemporary": "contemporary",
-            "صناعي": "industrial",
-            "industrial": "industrial",
-            "سكاندينافي": "scandinavian",
-            "scandinavian": "scandinavian",
-            "ريفي": "rustic",
-            "rustic": "rustic",
-            "بحر متوسط": "mediterranean",
-            "mediterranean": "mediterranean",
-            "آرت ديكو": "art_deco",
-            "art_deco": "art_deco",
-            "بوهيمي": "bohemian",
-            "bohemian": "bohemian"
-        }
-    }), []);
+      // ==================== خريطة تحويل شاملة (مطابقة لـ normalizeCategories في ProjectModal) ====================
+      const categoryMapping = useMemo(() => ({
+          // خريطة mainCategory
+          mainCategory: {
+              "سكني": "residential",
+              "residential": "residential",
+              "تجاري": "commercial",
+              "commercial": "commercial"
+          },
+          // خريطة subCategory للمشاريع السكنية
+          subCategoryResidential: {
+              "شقق": "apartments",
+              "apartments": "apartments",
+              "فلل": "villas",
+              "villas": "villas",
+              "دوبلكس": "duplex",
+              "duplex": "duplex",
+              "تاون هاوس": "townhouse",
+              "townhouse": "townhouse",
+              "بنتهاوس": "penthouse",
+              "penthouse": "penthouse",
+              "إستوديوهات": "studios",
+              "studios": "studios",
+              "شاليهات": "chalets",
+              "chalets": "chalets",
+              "كوخ": "cabin",
+              "cabin": "cabin",
+              "روف": "roof",
+              "roof": "roof"
+          },
+          // خريطة subCategory للمشاريع التجارية
+          subCategoryCommercial: {
+              "مكاتب": "offices",
+              "offices": "offices",
+              "متاجر": "stores",
+              "stores": "stores",
+              "مطاعم": "restaurants",
+              "restaurants": "restaurants",
+              "مقاهي": "cafes",
+              "cafes": "cafes",
+              "معارض": "showrooms",
+              "showrooms": "showrooms",
+              "عيادات": "clinics",
+              "clinics": "clinics",
+              "صالونات": "salons",
+              "salons": "salons",
+              "فنادق": "hotels",
+              "hotels": "hotels",
+              "صالات رياضية": "gyms",
+              "gyms": "gyms",
+              "مدارس": "schools",
+              "schools": "schools"
+          },
+          // خريطة specialization
+          specialization: {
+              "داخلي": "interior",
+              "interior": "interior",
+              "خارجي": "exterior",
+              "exterior": "exterior",
+              "لاندسكيب": "landscape",
+              "landscape": "landscape",
+              "داخلي وخارجي": "both",
+              "both": "both"
+          },
+          // خريطة الغرف الداخلية
+          interiorRooms: {
+              "مشاريع كاملة": "full_projects",
+              "full_projects": "full_projects",
+              "غرفة المعيشة": "living_room",
+              "living_room": "living_room",
+              "صالون": "salon",
+              "salon": "salon",
+              "مطبخ": "kitchen",
+              "kitchen": "kitchen",
+              "غرفة الطعام": "dining_room",
+              "dining_room": "dining_room",
+              "حمام": "bathroom",
+              "bathroom": "bathroom",
+              "مكتب منزلي": "home_office",
+              "home_office": "home_office",
+              "غرفة نوم رئيسية": "master_bedroom",
+              "master_bedroom": "master_bedroom",
+              "غرفة أطفال": "children_room",
+              "children_room": "children_room",
+              "غرفة ضيوف": "guest_room",
+              "guest_room": "guest_room",
+              "مكتبة": "library",
+              "library": "library",
+              "غرفة نوم الاولاد": "Boys_Bedroom",
+              "Boys_Bedroom": "Boys_Bedroom",
+              "غرفة نوم البنات": "Girls_Bedroom",
+              "Girls_Bedroom": "Girls_Bedroom",
+              "غرفة نوم ثانوية": "Second_Bedroom",
+              "Second_Bedroom": "Second_Bedroom",
+              "غرفة صلاة": "prayer_room",
+              "prayer_room": "prayer_room",
+              "غرفة ملابس": "dressing_room",
+              "dressing_room": "dressing_room",
+              "غرفة غسيل": "laundry_room",
+              "laundry_room": "laundry_room",
+              "غرفة تخزين": "storage_room",
+              "storage_room": "storage_room"
+          },
+          // خريطة الغرف التجارية
+          commercialRooms: {
+              "استقبال": "commercial_reception",
+              "commercial_reception": "commercial_reception",
+              "غرفة انتظار": "commercial_waiting",
+              "commercial_waiting": "commercial_waiting",
+              "غرفة اجتماعات": "commercial_conference",
+              "commercial_conference": "commercial_conference",
+              "غرفة مدير": "commercial_manager",
+              "commercial_manager": "commercial_manager",
+              "حمام تجاري": "commercial_bathroom",
+              "commercial_bathroom": "commercial_bathroom",
+              "مطبخ تجاري": "commercial_kitchen",
+              "commercial_kitchen": "commercial_kitchen",
+              "مخزن تجاري": "commercial_storage",
+              "commercial_storage": "commercial_storage"
+          },
+          // خريطة الأماكن الخارجية
+          exteriorAreas: {
+              "واجهة": "facade",
+              "facade": "facade",
+              "حديقة": "garden",
+              "garden": "garden",
+              "مسبح": "swimming_pool",
+              "swimming_pool": "swimming_pool",
+              "تراس": "terrace",
+              "terrace": "terrace",
+              "بلكونة": "balcony",
+              "balcony": "balcony",
+              "فناء": "patio",
+              "patio": "patio",
+              "مدخل سيارات": "driveway",
+              "driveway": "driveway",
+              "موقف سيارات": "parking",
+              "parking": "parking",
+              "سياج": "fence",
+              "fence": "fence",
+              "جازيبو": "gazebo",
+              "gazebo": "gazebo",
+              "مطبخ خارجي": "outdoor_kitchen",
+              "outdoor_kitchen": "outdoor_kitchen",
+              "مشعل نار": "fire_pit",
+              "fire_pit": "fire_pit",
+              "ممشى": "walkway",
+              "walkway": "walkway"
+          },
+          // خريطة أنماط التصميم
+          designStyles: {
+              "عصري": "modern",
+              "modern": "modern",
+              "كلاسيكي": "classic",
+              "classic": "classic",
+              "بسيط": "minimalist",
+              "minimalist": "minimalist",
+              "فاخر": "luxury",
+              "luxury": "luxury",
+              "تقليدي": "traditional",
+              "traditional": "traditional",
+              "معاصر": "contemporary",
+              "contemporary": "contemporary",
+              "صناعي": "industrial",
+              "industrial": "industrial",
+              "سكاندينافي": "scandinavian",
+              "scandinavian": "scandinavian",
+              "ريفي": "rustic",
+              "rustic": "rustic",
+              "بحر متوسط": "mediterranean",
+              "mediterranean": "mediterranean",
+              "آرت ديكو": "art_deco",
+              "art_deco": "art_deco",
+              "بوهيمي": "bohemian",
+              "bohemian": "bohemian"
+          }
+      }), []);
 
-    // ==================== دوال مساعدة للتصنيفات ====================
-    
-    // تطبيع أي قيمة إلى المعرف الموحد
-    const normalizeId = useCallback((value, mapping) => {
-        if (!value) return value;
-        const normalizedValue = String(value).toLowerCase().trim();
-        return mapping[normalizedValue] || mapping[value] || value;
-    }, []);
+      // ==================== دوال مساعدة للتصنيفات ====================
+      
+      // تطبيع أي قيمة إلى المعرف الموحد
+      const normalizeId = useCallback((value, mapping) => {
+          if (!value) return value;
+          const normalizedValue = String(value).toLowerCase().trim();
+          return mapping[normalizedValue] || mapping[value] || value;
+      }, []);
 
-    // الحصول على اسم التصنيف الرئيسي
-    const getMainCategoryName = useCallback((mainCategory) => {
-        if (!mainCategory) return "";
-        const normalized = normalizeId(mainCategory, categoryMapping.mainCategory);
-        if (normalized === "residential") return "سكني";
-        if (normalized === "commercial") return "تجاري";
-        return mainCategory;
-    }, [categoryMapping.mainCategory, normalizeId]);
+      // الحصول على اسم التصنيف الرئيسي
+      const getMainCategoryName = useCallback((mainCategory) => {
+          if (!mainCategory) return "";
+          const normalized = normalizeId(mainCategory, categoryMapping.mainCategory);
+          if (normalized === "residential") return "سكني";
+          if (normalized === "commercial") return "تجاري";
+          return mainCategory;
+      }, [categoryMapping.mainCategory, normalizeId]);
 
-    // الحصول على اسم التصنيف الفرعي
-    const getSubCategoryName = useCallback((subCategory, mainCategory) => {
-        if (!subCategory) return "";
-        
-        const normalizedMain = mainCategory ? normalizeId(mainCategory, categoryMapping.mainCategory) : "";
-        let normalizedSub = subCategory;
-        
-        if (normalizedMain === "residential") {
-            normalizedSub = normalizeId(subCategory, categoryMapping.subCategoryResidential);
-        } else if (normalizedMain === "commercial") {
-            normalizedSub = normalizeId(subCategory, categoryMapping.subCategoryCommercial);
-        } else {
-            normalizedSub = normalizeId(subCategory, {
-                ...categoryMapping.subCategoryResidential,
-                ...categoryMapping.subCategoryCommercial
-            });
-        }
-        
-        // البحث عن الاسم العربي
-        if (normalizedMain === "residential") {
-            const cat = designCategories.find(c => c.id === "residential");
-            const sub = cat?.subcategories?.find(s => s.id === normalizedSub);
-            return sub?.name?.ar || subCategory;
-        } else if (normalizedMain === "commercial") {
-            const cat = designCategories.find(c => c.id === "commercial");
-            const sub = cat?.subcategories?.find(s => s.id === normalizedSub);
-            return sub?.name?.ar || subCategory;
-        }
-        
-        return subCategory;
-    }, [categoryMapping, designCategories, normalizeId]);
+      // الحصول على اسم التصنيف الفرعي
+      const getSubCategoryName = useCallback((subCategory, mainCategory) => {
+          if (!subCategory) return "";
+          
+          const normalizedMain = mainCategory ? normalizeId(mainCategory, categoryMapping.mainCategory) : "";
+          let normalizedSub = subCategory;
+          
+          if (normalizedMain === "residential") {
+              normalizedSub = normalizeId(subCategory, categoryMapping.subCategoryResidential);
+          } else if (normalizedMain === "commercial") {
+              normalizedSub = normalizeId(subCategory, categoryMapping.subCategoryCommercial);
+          } else {
+              normalizedSub = normalizeId(subCategory, {
+                  ...categoryMapping.subCategoryResidential,
+                  ...categoryMapping.subCategoryCommercial
+              });
+          }
+          
+          // البحث عن الاسم العربي
+          if (normalizedMain === "residential") {
+              const cat = designCategories.find(c => c.id === "residential");
+              const sub = cat?.subcategories?.find(s => s.id === normalizedSub);
+              return sub?.name?.ar || subCategory;
+          } else if (normalizedMain === "commercial") {
+              const cat = designCategories.find(c => c.id === "commercial");
+              const sub = cat?.subcategories?.find(s => s.id === normalizedSub);
+              return sub?.name?.ar || subCategory;
+          }
+          
+          return subCategory;
+      }, [categoryMapping, designCategories, normalizeId]);
 
-    // الحصول على اسم التخصص
-    const getSpecializationName = useCallback((specialization) => {
-        if (!specialization) return "";
-        const normalized = normalizeId(specialization, categoryMapping.specialization);
-        const cat = designCategories.find(c => c.id === "specializations");
-        const spec = cat?.subcategories?.find(s => s.id === normalized);
-        return spec?.name?.ar || specialization;
-    }, [categoryMapping.specialization, designCategories, normalizeId]);
+      // الحصول على اسم التخصص
+      const getSpecializationName = useCallback((specialization) => {
+          if (!specialization) return "";
+          const normalized = normalizeId(specialization, categoryMapping.specialization);
+          const cat = designCategories.find(c => c.id === "specializations");
+          const spec = cat?.subcategories?.find(s => s.id === normalized);
+          return spec?.name?.ar || specialization;
+      }, [categoryMapping.specialization, designCategories, normalizeId]);
 
-    // الحصول على اسم الغرفة الداخلية
-    const getInteriorRoomName = useCallback((roomId) => {
-        if (!roomId) return "";
-        const normalized = normalizeId(roomId, categoryMapping.interiorRooms);
-        const cat = designCategories.find(c => c.id === "interior_rooms");
-        const room = cat?.subcategories?.find(s => s.id === normalized);
-        return room?.name?.ar || roomId;
-    }, [categoryMapping.interiorRooms, designCategories, normalizeId]);
+      // الحصول على اسم الغرفة الداخلية
+      const getInteriorRoomName = useCallback((roomId) => {
+          if (!roomId) return "";
+          const normalized = normalizeId(roomId, categoryMapping.interiorRooms);
+          const cat = designCategories.find(c => c.id === "interior_rooms");
+          const room = cat?.subcategories?.find(s => s.id === normalized);
+          return room?.name?.ar || roomId;
+      }, [categoryMapping.interiorRooms, designCategories, normalizeId]);
 
-    // الحصول على اسم الغرفة التجارية
-    const getCommercialRoomName = useCallback((roomId) => {
-        if (!roomId) return "";
-        const normalized = normalizeId(roomId, categoryMapping.commercialRooms);
-        const cat = designCategories.find(c => c.id === "commercial_rooms");
-        const room = cat?.subcategories?.find(s => s.id === normalized);
-        return room?.name?.ar || roomId;
-    }, [categoryMapping.commercialRooms, designCategories, normalizeId]);
+      // الحصول على اسم الغرفة التجارية
+      const getCommercialRoomName = useCallback((roomId) => {
+          if (!roomId) return "";
+          const normalized = normalizeId(roomId, categoryMapping.commercialRooms);
+          const cat = designCategories.find(c => c.id === "commercial_rooms");
+          const room = cat?.subcategories?.find(s => s.id === normalized);
+          return room?.name?.ar || roomId;
+      }, [categoryMapping.commercialRooms, designCategories, normalizeId]);
 
-    // الحصول على اسم المنطقة الخارجية
-    const getExteriorAreaName = useCallback((areaId) => {
-        if (!areaId) return "";
-        const normalized = normalizeId(areaId, categoryMapping.exteriorAreas);
-        const cat = designCategories.find(c => c.id === "exterior_areas");
-        const area = cat?.subcategories?.find(s => s.id === normalized);
-        return area?.name?.ar || areaId;
-    }, [categoryMapping.exteriorAreas, designCategories, normalizeId]);
+      // الحصول على اسم المنطقة الخارجية
+      const getExteriorAreaName = useCallback((areaId) => {
+          if (!areaId) return "";
+          const normalized = normalizeId(areaId, categoryMapping.exteriorAreas);
+          const cat = designCategories.find(c => c.id === "exterior_areas");
+          const area = cat?.subcategories?.find(s => s.id === normalized);
+          return area?.name?.ar || areaId;
+      }, [categoryMapping.exteriorAreas, designCategories, normalizeId]);
 
-    // الحصول على اسم نمط التصميم
-    const getDesignStyleName = useCallback((styleId) => {
-        if (!styleId) return "";
-        const normalized = normalizeId(styleId, categoryMapping.designStyles);
-        const cat = designCategories.find(c => c.id === "design_styles");
-        const style = cat?.subcategories?.find(s => s.id === normalized);
-        return style?.name?.ar || styleId;
-    }, [categoryMapping.designStyles, designCategories, normalizeId]);
+      // الحصول على اسم نمط التصميم
+      const getDesignStyleName = useCallback((styleId) => {
+          if (!styleId) return "";
+          const normalized = normalizeId(styleId, categoryMapping.designStyles);
+          const cat = designCategories.find(c => c.id === "design_styles");
+          const style = cat?.subcategories?.find(s => s.id === normalized);
+          return style?.name?.ar || styleId;
+      }, [categoryMapping.designStyles, designCategories, normalizeId]);
 
-    // دالة للحصول على نص التصنيف الكامل
-    const getCategoryString = useCallback((category) => {
-        if (!category) return '';
-        
-        if (typeof category === 'string') {
-            return category;
-        }
-        
-        if (typeof category === 'object' && category !== null) {
-            const parts = [];
-            
-            // التصنيف الرئيسي
-            if (category.mainCategory) {
-                parts.push(getMainCategoryName(category.mainCategory));
-            }
-            
-            // التصنيف الفرعي
-            if (category.subCategory) {
-                const subName = getSubCategoryName(category.subCategory, category.mainCategory);
-                if (subName) parts.push(subName);
-            }
-            
-            // التخصص
-            if (category.specialization) {
-                const specName = getSpecializationName(category.specialization);
-                if (specName) parts.push(specName);
-            }
-            
-            // الغرف الداخلية
-            if (category.interiorRooms && Array.isArray(category.interiorRooms) && category.interiorRooms.length > 0) {
-                const roomNames = category.interiorRooms.map(room => getInteriorRoomName(room));
-                roomNames.forEach(name => {
-                    if (name && !parts.includes(name)) parts.push(name);
-                });
-            }
-            
-            // الغرف التجارية
-            if (category.commercialRooms && Array.isArray(category.commercialRooms) && category.commercialRooms.length > 0) {
-                const roomNames = category.commercialRooms.map(room => getCommercialRoomName(room));
-                roomNames.forEach(name => {
-                    if (name && !parts.includes(name)) parts.push(name);
-                });
-            }
-            
-            // الأماكن الخارجية
-            if (category.exteriorAreas && Array.isArray(category.exteriorAreas) && category.exteriorAreas.length > 0) {
-                const areaNames = category.exteriorAreas.map(area => getExteriorAreaName(area));
-                areaNames.forEach(name => {
-                    if (name && !parts.includes(name)) parts.push(name);
-                });
-            }
-            
-            // أنماط التصميم
-            if (category.designStyles && Array.isArray(category.designStyles) && category.designStyles.length > 0) {
-                const styleNames = category.designStyles.map(style => getDesignStyleName(style));
-                styleNames.forEach(name => {
-                    if (name && !parts.includes(name)) parts.push(name);
-                });
-            }
-            
-            if (parts.length === 0) {
-                return '';
-            }
-            
-            // إزالة التكرارات
-            const uniqueParts = [...new Set(parts)];
-            return uniqueParts.join(' • ');
-        }
-        
-        if (Array.isArray(category)) {
-            return category.join(' • ');
-        }
-        
-        return '';
-    }, [
-        getMainCategoryName,
-        getSubCategoryName,
-        getSpecializationName,
-        getInteriorRoomName,
-        getCommercialRoomName,
-        getExteriorAreaName,
-        getDesignStyleName
-    ]);
+      // دالة للحصول على نص التصنيف الكامل
+      const getCategoryString = useCallback((category) => {
+          if (!category) return '';
+          
+          if (typeof category === 'string') {
+              return category;
+          }
+          
+          if (typeof category === 'object' && category !== null) {
+              const parts = [];
+              
+              // التصنيف الرئيسي
+              if (category.mainCategory) {
+                  parts.push(getMainCategoryName(category.mainCategory));
+              }
+              
+              // التصنيف الفرعي
+              if (category.subCategory) {
+                  const subName = getSubCategoryName(category.subCategory, category.mainCategory);
+                  if (subName) parts.push(subName);
+              }
+              
+              // التخصص
+              if (category.specialization) {
+                  const specName = getSpecializationName(category.specialization);
+                  if (specName) parts.push(specName);
+              }
+              
+              // الغرف الداخلية
+              if (category.interiorRooms && Array.isArray(category.interiorRooms) && category.interiorRooms.length > 0) {
+                  const roomNames = category.interiorRooms.map(room => getInteriorRoomName(room));
+                  roomNames.forEach(name => {
+                      if (name && !parts.includes(name)) parts.push(name);
+                  });
+              }
+              
+              // الغرف التجارية
+              if (category.commercialRooms && Array.isArray(category.commercialRooms) && category.commercialRooms.length > 0) {
+                  const roomNames = category.commercialRooms.map(room => getCommercialRoomName(room));
+                  roomNames.forEach(name => {
+                      if (name && !parts.includes(name)) parts.push(name);
+                  });
+              }
+              
+              // الأماكن الخارجية
+              if (category.exteriorAreas && Array.isArray(category.exteriorAreas) && category.exteriorAreas.length > 0) {
+                  const areaNames = category.exteriorAreas.map(area => getExteriorAreaName(area));
+                  areaNames.forEach(name => {
+                      if (name && !parts.includes(name)) parts.push(name);
+                  });
+              }
+              
+              // أنماط التصميم
+              if (category.designStyles && Array.isArray(category.designStyles) && category.designStyles.length > 0) {
+                  const styleNames = category.designStyles.map(style => getDesignStyleName(style));
+                  styleNames.forEach(name => {
+                      if (name && !parts.includes(name)) parts.push(name);
+                  });
+              }
+              
+              if (parts.length === 0) {
+                  return '';
+              }
+              
+              // إزالة التكرارات
+              const uniqueParts = [...new Set(parts)];
+              return uniqueParts.join(' • ');
+          }
+          
+          if (Array.isArray(category)) {
+              return category.join(' • ');
+          }
+          
+          return '';
+      }, [
+          getMainCategoryName,
+          getSubCategoryName,
+          getSpecializationName,
+          getInteriorRoomName,
+          getCommercialRoomName,
+          getExteriorAreaName,
+          getDesignStyleName
+      ]);
 
-    // دالة safeStringify
-    const safeStringify = useCallback((value, fallback = '') => {
-        if (value === undefined || value === null) return fallback;
-        
-        if (typeof value === 'string') {
-            if (value === '' || value === '{"en":"","ar":""}' || value === '{}') return fallback;
-            return value;
-        }
-        
-        if (typeof value === 'number') return String(value);
-        
-        if (typeof value === 'object') {
-            try {
-                if (value.en === '' && value.ar === '') return fallback;
-                if (value.en === '' && !value.ar) return fallback;
-                if (value.ar === '' && !value.en) return fallback;
-                
-                if (value.ar && value.ar !== '') return value.ar;
-                
-                if (value.en && value.en !== '') return value.en;
-                
-                if (value.mainCategory) {
-                    const categoryStr = getCategoryString(value);
-                    return categoryStr || fallback;
-                }
-                
-                if (value.title) {
-                    return safeStringify(value.title, fallback);
-                }
-                
-                if (value.name) {
-                    return safeStringify(value.name, fallback);
-                }
-                
-                if (Object.keys(value).length === 0) return fallback;
-                
-                const str = JSON.stringify(value);
-                if (str === '{}' || str === '{"en":"","ar":""}') return fallback;
-                return str.length > 50 ? str.substring(0, 50) + '...' : str;
-            } catch (e) {
-                return fallback;
-            }
-        }
-        
-        if (Array.isArray(value)) {
-            if (value.length === 0) return fallback;
-            return value.join(', ');
-        }
-        
-        return String(value);
-    }, [getCategoryString]);
+      // دالة safeStringify
+      const safeStringify = useCallback((value, fallback = '') => {
+          if (value === undefined || value === null) return fallback;
+          
+          if (typeof value === 'string') {
+              if (value === '' || value === '{"en":"","ar":""}' || value === '{}') return fallback;
+              return value;
+          }
+          
+          if (typeof value === 'number') return String(value);
+          
+          if (typeof value === 'object') {
+              try {
+                  if (value.en === '' && value.ar === '') return fallback;
+                  if (value.en === '' && !value.ar) return fallback;
+                  if (value.ar === '' && !value.en) return fallback;
+                  
+                  if (value.ar && value.ar !== '') return value.ar;
+                  
+                  if (value.en && value.en !== '') return value.en;
+                  
+                  if (value.mainCategory) {
+                      const categoryStr = getCategoryString(value);
+                      return categoryStr || fallback;
+                  }
+                  
+                  if (value.title) {
+                      return safeStringify(value.title, fallback);
+                  }
+                  
+                  if (value.name) {
+                      return safeStringify(value.name, fallback);
+                  }
+                  
+                  if (Object.keys(value).length === 0) return fallback;
+                  
+                  const str = JSON.stringify(value);
+                  if (str === '{}' || str === '{"en":"","ar":""}') return fallback;
+                  return str.length > 50 ? str.substring(0, 50) + '...' : str;
+              } catch (e) {
+                  return fallback;
+              }
+          }
+          
+          if (Array.isArray(value)) {
+              if (value.length === 0) return fallback;
+              return value.join(', ');
+          }
+          
+          return String(value);
+      }, [getCategoryString]);
 
-    // دالة للحصول على كل النصوص القابلة للبحث في المشروع
-    const getProjectSearchableText = useCallback((project) => {
-        const searchTexts = [];
-        
-        // اسم المشروع
-        const projectName = safeStringify(project.projectName || project.title, '');
-        if (projectName) searchTexts.push(projectName);
-        
-        // الوصف
-        const description = safeStringify(project.briefDescription || project.description, '');
-        if (description) searchTexts.push(description);
-        
-        // التصنيفات
-        const categoryString = getCategoryString(project.category);
-        if (categoryString) searchTexts.push(categoryString);
-        
-        // التصنيف الرئيسي
-        if (project.category?.mainCategory) {
-            searchTexts.push(project.category.mainCategory);
-            searchTexts.push(getMainCategoryName(project.category.mainCategory));
-        }
-        
-        // التصنيف الفرعي
-        if (project.category?.subCategory) {
-            searchTexts.push(project.category.subCategory);
-            searchTexts.push(getSubCategoryName(project.category.subCategory, project.category.mainCategory));
-        }
-        
-        // التخصص
-        if (project.category?.specialization) {
-            searchTexts.push(project.category.specialization);
-            searchTexts.push(getSpecializationName(project.category.specialization));
-        }
-        
-        // الغرف الداخلية
-        if (project.category?.interiorRooms && Array.isArray(project.category.interiorRooms)) {
-            project.category.interiorRooms.forEach(room => {
-                searchTexts.push(room);
-                searchTexts.push(getInteriorRoomName(room));
-            });
-        }
-        
-        // الغرف التجارية
-        if (project.category?.commercialRooms && Array.isArray(project.category.commercialRooms)) {
-            project.category.commercialRooms.forEach(room => {
-                searchTexts.push(room);
-                searchTexts.push(getCommercialRoomName(room));
-            });
-        }
-        
-        // الأماكن الخارجية
-        if (project.category?.exteriorAreas && Array.isArray(project.category.exteriorAreas)) {
-            project.category.exteriorAreas.forEach(area => {
-                searchTexts.push(area);
-                searchTexts.push(getExteriorAreaName(area));
-            });
-        }
-        
-        // أنماط التصميم
-        if (project.category?.designStyles && Array.isArray(project.category.designStyles)) {
-            project.category.designStyles.forEach(style => {
-                searchTexts.push(style);
-                searchTexts.push(getDesignStyleName(style));
-            });
-        }
-        
-        // السنة
-        const year = project.projectYear || project.year;
-        if (year) searchTexts.push(String(year));
-        
-        // الموقع
-        const location = safeStringify(project.projectLocation || project.location, '');
-        if (location) searchTexts.push(location);
-        
-        // المساحة
-        const area = project.projectArea || project.area;
-        if (area) searchTexts.push(String(area));
-        
-        // الوسوم
-        if (project.tags) {
-            if (project.tags.ar && Array.isArray(project.tags.ar)) {
-                searchTexts.push(...project.tags.ar);
-            }
-            if (project.tags.en && Array.isArray(project.tags.en)) {
-                searchTexts.push(...project.tags.en);
-            }
-            if (Array.isArray(project.tags)) {
-                searchTexts.push(...project.tags);
-            }
-        }
-        
-        // الألوان
-        if (project.selectedColors && Array.isArray(project.selectedColors)) {
-            searchTexts.push(...project.selectedColors);
-        }
-        
-        return searchTexts.join(' ').toLowerCase();
-    }, [
-        safeStringify,
-        getCategoryString,
-        getMainCategoryName,
-        getSubCategoryName,
-        getSpecializationName,
-        getInteriorRoomName,
-        getCommercialRoomName,
-        getExteriorAreaName,
-        getDesignStyleName
-    ]);
+      // دالة للحصول على كل النصوص القابلة للبحث في المشروع
+      const getProjectSearchableText = useCallback((project) => {
+          const searchTexts = [];
+          
+          // اسم المشروع
+          const projectName = safeStringify(project.projectName || project.title, '');
+          if (projectName) searchTexts.push(projectName);
+          
+          // الوصف
+          const description = safeStringify(project.briefDescription || project.description, '');
+          if (description) searchTexts.push(description);
+          
+          // التصنيفات
+          const categoryString = getCategoryString(project.category);
+          if (categoryString) searchTexts.push(categoryString);
+          
+          // التصنيف الرئيسي
+          if (project.category?.mainCategory) {
+              searchTexts.push(project.category.mainCategory);
+              searchTexts.push(getMainCategoryName(project.category.mainCategory));
+          }
+          
+          // التصنيف الفرعي
+          if (project.category?.subCategory) {
+              searchTexts.push(project.category.subCategory);
+              searchTexts.push(getSubCategoryName(project.category.subCategory, project.category.mainCategory));
+          }
+          
+          // التخصص
+          if (project.category?.specialization) {
+              searchTexts.push(project.category.specialization);
+              searchTexts.push(getSpecializationName(project.category.specialization));
+          }
+          
+          // الغرف الداخلية
+          if (project.category?.interiorRooms && Array.isArray(project.category.interiorRooms)) {
+              project.category.interiorRooms.forEach(room => {
+                  searchTexts.push(room);
+                  searchTexts.push(getInteriorRoomName(room));
+              });
+          }
+          
+          // الغرف التجارية
+          if (project.category?.commercialRooms && Array.isArray(project.category.commercialRooms)) {
+              project.category.commercialRooms.forEach(room => {
+                  searchTexts.push(room);
+                  searchTexts.push(getCommercialRoomName(room));
+              });
+          }
+          
+          // الأماكن الخارجية
+          if (project.category?.exteriorAreas && Array.isArray(project.category.exteriorAreas)) {
+              project.category.exteriorAreas.forEach(area => {
+                  searchTexts.push(area);
+                  searchTexts.push(getExteriorAreaName(area));
+              });
+          }
+          
+          // أنماط التصميم
+          if (project.category?.designStyles && Array.isArray(project.category.designStyles)) {
+              project.category.designStyles.forEach(style => {
+                  searchTexts.push(style);
+                  searchTexts.push(getDesignStyleName(style));
+              });
+          }
+          
+          // السنة
+          const year = project.projectYear || project.year;
+          if (year) searchTexts.push(String(year));
+          
+          // الموقع
+          const location = safeStringify(project.projectLocation || project.location, '');
+          if (location) searchTexts.push(location);
+          
+          // المساحة
+          const area = project.projectArea || project.area;
+          if (area) searchTexts.push(String(area));
+          
+          // الوسوم
+          if (project.tags) {
+              if (project.tags.ar && Array.isArray(project.tags.ar)) {
+                  searchTexts.push(...project.tags.ar);
+              }
+              if (project.tags.en && Array.isArray(project.tags.en)) {
+                  searchTexts.push(...project.tags.en);
+              }
+              if (Array.isArray(project.tags)) {
+                  searchTexts.push(...project.tags);
+              }
+          }
+          
+          // الألوان
+          if (project.selectedColors && Array.isArray(project.selectedColors)) {
+              searchTexts.push(...project.selectedColors);
+          }
+          
+          return searchTexts.join(' ').toLowerCase();
+      }, [
+          safeStringify,
+          getCategoryString,
+          getMainCategoryName,
+          getSubCategoryName,
+          getSpecializationName,
+          getInteriorRoomName,
+          getCommercialRoomName,
+          getExteriorAreaName,
+          getDesignStyleName
+      ]);
 
-    // دالة للحصول على السنوات المتاحة من المشاريع
-    const getAvailableYears = useCallback(() => {
-        const years = new Set();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        const currentProjects = projects || [];
-        currentProjects.forEach(project => {
-            const year = project.projectYear || project.year;
-            if (year && year !== "بدون تاريخ") {
-                years.add(year);
-            }
-        });
-        return Array.from(years).sort((a, b) => b - a);
-    }, []);
+      // دالة للحصول على السنوات المتاحة من المشاريع
+      const getAvailableYears = useCallback(() => {
+          const years = new Set();
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          const currentProjects = projects || [];
+          currentProjects.forEach(project => {
+              const year = project.projectYear || project.year;
+              if (year && year !== "بدون تاريخ") {
+                  years.add(year);
+              }
+          });
+          return Array.from(years).sort((a, b) => b - a);
+      }, []);
 
-    // دالة تصفية المشاريع - فلترة تلقائية مع بحث شامل
-    const filteredProjects = useMemo(() => {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        const currentProjects = projects || [];
-        
-        return currentProjects.filter(project => {
-            // تحديد الصفحة التي يظهر فيها المشروع - القيمة الافتراضية هي "portfolio"
-            const projectPageType = project.pageType || "portfolio";
-            
-            // الحصول على سنة المشروع
-            const projectYear = project.projectYear || project.year;
-            
-            // فلترة البحث الشامل
-            let matchesSearch = true;
-            if (searchTerm !== "") {
-                const searchLower = searchTerm.toLowerCase().trim();
-                const projectSearchText = getProjectSearchableText(project);
-                matchesSearch = projectSearchText.includes(searchLower);
-            }
-            
-            // فلترة الحالة
-            const matchesStatus = filterStatus === "all" ||
-                (filterStatus === "active" && project.isActive) ||
-                (filterStatus === "inactive" && !project.isActive) ||
-                (filterStatus === "featured" && project.isFeatured);
-            
-            // فلترة الصفحة (من أين يظهر المشروع)
-            const matchesPageType = filterPageType === "all" ||
-                (filterPageType === "portfolio" && projectPageType === "portfolio") ||
-                (filterPageType === "admin" && projectPageType === "admin");
-            
-            // فلترة السنة
-            const matchesYear = filterYear === "all" ||
-                (projectYear && projectYear.toString() === filterYear);
-            
-            return matchesSearch && 
-                   matchesStatus && 
-                   matchesPageType &&
-                   matchesYear;
-        }).sort((a, b) => {
-            switch(sortBy) {
-                case "newest":
-                    // ترتيب حسب تاريخ الإضافة (الأحدث أولاً)
-                    const dateA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 
-                                 a.createdAt ? new Date(a.createdAt).getTime() : 
-                                 a.id || 0;
-                    const dateB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 
-                                 b.createdAt ? new Date(b.createdAt).getTime() : 
-                                 b.id || 0;
-                    return dateB - dateA;
-                case "oldest":
-                    // ترتيب حسب تاريخ الإضافة (الأقدم أولاً)
-                    const dateAOld = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 
-                                    a.createdAt ? new Date(a.createdAt).getTime() : 
-                                    a.id || 0;
-                    const dateBOld = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 
-                                    b.createdAt ? new Date(b.createdAt).getTime() : 
-                                    b.id || 0;
-                    return dateAOld - dateBOld;
-                case "name-asc":
-                    const nameA = safeStringify(a.projectName || a.title, '');
-                    const nameB = safeStringify(b.projectName || b.title, '');
-                    return nameA.localeCompare(nameB, 'ar');
-                case "name-desc":
-                    const nameADesc = safeStringify(a.projectName || a.title, '');
-                    const nameBDesc = safeStringify(b.projectName || b.title, '');
-                    return nameBDesc.localeCompare(nameADesc, 'ar');
-                case "year-newest":
-                    return (b.projectYear || b.year || 0) - (a.projectYear || a.year || 0);
-                case "year-oldest":
-                    return (a.projectYear || a.year || 0) - (b.projectYear || b.year || 0);
-                default:
-                    return 0;
-            }
-        });
-    }, [
-        searchTerm,
-        filterStatus,
-        filterPageType,
-        filterYear,
-        sortBy,
-        safeStringify,
-        getProjectSearchableText
-    ]);
+      // دالة تصفية المشاريع - فلترة تلقائية مع بحث شامل
+      const filteredProjects = useMemo(() => {
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          const currentProjects = projects || [];
+          
+          return currentProjects.filter(project => {
+              // تحديد الصفحة التي يظهر فيها المشروع - القيمة الافتراضية هي "portfolio"
+              const projectPageType = project.pageType || "portfolio";
+              
+              // الحصول على سنة المشروع
+              const projectYear = project.projectYear || project.year;
+              
+              // فلترة البحث الشامل
+              let matchesSearch = true;
+              if (searchTerm !== "") {
+                  const searchLower = searchTerm.toLowerCase().trim();
+                  const projectSearchText = getProjectSearchableText(project);
+                  matchesSearch = projectSearchText.includes(searchLower);
+              }
+              
+              // فلترة الحالة
+              const matchesStatus = filterStatus === "all" ||
+                  (filterStatus === "active" && project.isActive) ||
+                  (filterStatus === "inactive" && !project.isActive) ||
+                  (filterStatus === "featured" && project.isFeatured);
+              
+              // فلترة الصفحة (من أين يظهر المشروع)
+              const matchesPageType = filterPageType === "all" ||
+                  (filterPageType === "portfolio" && projectPageType === "portfolio") ||
+                  (filterPageType === "admin" && projectPageType === "admin");
+              
+              // فلترة السنة
+              const matchesYear = filterYear === "all" ||
+                  (projectYear && projectYear.toString() === filterYear);
+              
+              return matchesSearch && 
+                    matchesStatus && 
+                    matchesPageType &&
+                    matchesYear;
+          }).sort((a, b) => {
+              switch(sortBy) {
+                  case "newest":
+                      // ترتيب حسب تاريخ الإضافة (الأحدث أولاً)
+                      const dateA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 
+                                  a.createdAt ? new Date(a.createdAt).getTime() : 
+                                  a.id || 0;
+                      const dateB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 
+                                  b.createdAt ? new Date(b.createdAt).getTime() : 
+                                  b.id || 0;
+                      return dateB - dateA;
+                  case "oldest":
+                      // ترتيب حسب تاريخ الإضافة (الأقدم أولاً)
+                      const dateAOld = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 
+                                      a.createdAt ? new Date(a.createdAt).getTime() : 
+                                      a.id || 0;
+                      const dateBOld = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 
+                                      b.createdAt ? new Date(b.createdAt).getTime() : 
+                                      b.id || 0;
+                      return dateAOld - dateBOld;
+                  case "name-asc":
+                      const nameA = safeStringify(a.projectName || a.title, '');
+                      const nameB = safeStringify(b.projectName || b.title, '');
+                      return nameA.localeCompare(nameB, 'ar');
+                  case "name-desc":
+                      const nameADesc = safeStringify(a.projectName || a.title, '');
+                      const nameBDesc = safeStringify(b.projectName || b.title, '');
+                      return nameBDesc.localeCompare(nameADesc, 'ar');
+                  case "year-newest":
+                      return (b.projectYear || b.year || 0) - (a.projectYear || a.year || 0);
+                  case "year-oldest":
+                      return (a.projectYear || a.year || 0) - (b.projectYear || b.year || 0);
+                  default:
+                      return 0;
+              }
+          });
+      }, [
+          searchTerm,
+          filterStatus,
+          filterPageType,
+          filterYear,
+          sortBy,
+          safeStringify,
+          getProjectSearchableText
+      ]);
 
-    // ==================== دوال إنشاء خيارات الفلاتر ====================
-    
-    // خيارات الصفحة (من أين يظهر المشروع)
-    const pageTypeOptions = useMemo(() => [
-        { id: "all", name: "جميع الصفحات" },
-        { id: "portfolio", name: "صفحة المعرض (Portfolio)" },
-        { id: "admin", name: "صفحة الإدارة (Admin Projects)" }
-    ], []);
+      // ==================== دوال إنشاء خيارات الفلاتر ====================
+      
+      // خيارات الصفحة (من أين يظهر المشروع)
+      const pageTypeOptions = useMemo(() => [
+          { id: "all", name: "جميع الصفحات" },
+          { id: "portfolio", name: "صفحة المعرض (Portfolio)" },
+          { id: "admin", name: "صفحة الإدارة (Admin Projects)" }
+      ], []);
 
-    // خيارات السنوات
-    const yearOptions = useMemo(() => {
-        const years = getAvailableYears();
-        return [
-            { id: "all", name: "جميع السنوات" },
-            ...years.map(year => ({ id: year.toString(), name: year.toString() }))
-        ];
-    }, [getAvailableYears]);
+      // خيارات السنوات
+      const yearOptions = useMemo(() => {
+          const years = getAvailableYears();
+          return [
+              { id: "all", name: "جميع السنوات" },
+              ...years.map(year => ({ id: year.toString(), name: year.toString() }))
+          ];
+      }, [getAvailableYears]);
 
-    // ==================== دوال إدارة الفلاتر والتمرير ====================
-    
-    const resetFilters = () => {
-        setSearchTerm("");
-        setFilterStatus("all");
-        setFilterPageType("all");
-        setFilterYear("all");
-        setSortBy("newest");
-        
-        // مسح جميع البيانات المحفوظة من sessionStorage
-        sessionStorage.removeItem('projects_searchTerm');
-        sessionStorage.removeItem('projects_filterStatus');
-        sessionStorage.removeItem('projects_filterPageType');
-        sessionStorage.removeItem('projects_filterYear');
-        sessionStorage.removeItem('projects_sortBy');
-        sessionStorage.removeItem('projects_scrollPosition');
-    };
+      // ==================== دوال إدارة الفلاتر والتمرير ====================
+      
+      const resetFilters = () => {
+          setSearchTerm("");
+          setFilterStatus("all");
+          setFilterPageType("all");
+          setFilterYear("all");
+          setSortBy("newest");
+          
+          // مسح جميع البيانات المحفوظة من sessionStorage
+          sessionStorage.removeItem('projects_searchTerm');
+          sessionStorage.removeItem('projects_filterStatus');
+          sessionStorage.removeItem('projects_filterPageType');
+          sessionStorage.removeItem('projects_filterYear');
+          sessionStorage.removeItem('projects_sortBy');
+          sessionStorage.removeItem('projects_scrollPosition');
+      };
 
-    // دالة معالجة فتح المشروع - نحفظ الفلاتر الحالية قبل الانتقال
-    const handleProjectClick = useCallback((projectId) => {
-        // قبل فتح المشروع، نتأكد من حفظ الفلاتر الحالية
-        sessionStorage.setItem('projects_searchTerm', searchTerm);
-        sessionStorage.setItem('projects_filterStatus', filterStatus);
-        sessionStorage.setItem('projects_filterPageType', filterPageType);
-        sessionStorage.setItem('projects_filterYear', filterYear);
-        sessionStorage.setItem('projects_sortBy', sortBy);
-        sessionStorage.setItem('projects_scrollPosition', window.scrollY.toString());
-        
-        // هنا يمكن إضافة منطق فتح المشروع
-        handleEditProject({ id: projectId });
-    }, [searchTerm, filterStatus, filterPageType, filterYear, sortBy]);
+      // ✅ دالة معالجة فتح المشروع المعدلة - تفتح في وضع العرض (View) بدلاً من التعديل
+      const handleProjectClick = useCallback((project) => {
+          // قبل فتح المشروع، نتأكد من حفظ الفلاتر الحالية
+          sessionStorage.setItem('projects_searchTerm', searchTerm);
+          sessionStorage.setItem('projects_filterStatus', filterStatus);
+          sessionStorage.setItem('projects_filterPageType', filterPageType);
+          sessionStorage.setItem('projects_filterYear', filterYear);
+          sessionStorage.setItem('projects_sortBy', sortBy);
+          sessionStorage.setItem('projects_scrollPosition', window.scrollY.toString());
+          
+          // ✅ فتح المشروع في وضع العرض (View) لعرض الصور بشكل صحيح
+          setSelectedViewProject(project);
+      }, [searchTerm, filterStatus, filterPageType, filterYear, sortBy]);
 
-    // ==================== حساب الإحصائيات ====================
-    const stats = useMemo(() => {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        const currentProjects = projects || [];
-        return {
-            total: currentProjects.length,
-            active: currentProjects.filter(p => p.isActive).length,
-            inactive: currentProjects.filter(p => !p.isActive).length,
-            featured: currentProjects.filter(p => p.isFeatured).length,
-            portfolio: currentProjects.filter(p => (p.pageType || "portfolio") === "portfolio").length,
-            admin: currentProjects.filter(p => p.pageType === "admin").length
-        };
-    }, []);
-    
-    // ==================== دالة عرض الوسوم ====================
-    const renderTags = useCallback((tags) => {
-        if (!tags) return null;
-        
-        if (Array.isArray(tags) && tags.length === 0) return null;
-        
-        if (typeof tags === 'object' && tags !== null && !Array.isArray(tags)) {
-            const arabicTags = tags.ar || [];
-            const englishTags = tags.en || [];
-            
-            if (arabicTags.length === 0 && englishTags.length === 0) return null;
-            
-            const allTags = [...arabicTags, ...englishTags].slice(0, 4);
-            
-            return allTags.map((tag, idx) => (
-                <span 
-                    key={`tag-${idx}`} 
-                    className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
-                    title={tag}
-                >
-                    {tag}
-                </span>
-            ));
-        }
-        
-        if (Array.isArray(tags)) {
-            if (tags.length === 0) return null;
-            return tags.slice(0, 4).map((tag, idx) => (
-                <span 
-                    key={idx} 
-                    className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
-                    title={tag}
-                >
-                    {tag}
-                </span>
-            ));
-        }
-        
-        if (typeof tags === 'string') {
-            if (tags === '' || tags === '{"en":"","ar":""}' || tags === '[]') return null;
-            
-            try {
-                const parsed = JSON.parse(tags);
-                if (Array.isArray(parsed)) {
-                    if (parsed.length === 0) return null;
-                    return parsed.slice(0, 4).map((tag, idx) => (
-                        <span 
-                            key={idx} 
-                            className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
-                            title={tag}
-                        >
-                            {tag}
-                        </span>
-                    ));
-                }
-            } catch (e) {
-                const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-                if (tagsArray.length === 0) return null;
-                return tagsArray.slice(0, 4).map((tag, idx) => (
-                    <span 
-                        key={idx} 
-                        className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
-                        title={tag}
-                    >
-                        {tag}
-                    </span>
-                ));
-            }
-        }
-        
-        return null;
-    }, []);
+      // ==================== حساب الإحصائيات ====================
+      const stats = useMemo(() => {
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          const currentProjects = projects || [];
+          return {
+              total: currentProjects.length,
+              active: currentProjects.filter(p => p.isActive).length,
+              inactive: currentProjects.filter(p => !p.isActive).length,
+              featured: currentProjects.filter(p => p.isFeatured).length,
+              portfolio: currentProjects.filter(p => (p.pageType || "portfolio") === "portfolio").length,
+              admin: currentProjects.filter(p => p.pageType === "admin").length
+          };
+      }, []);
+      
+      // ==================== دالة عرض الوسوم ====================
+      const renderTags = useCallback((tags) => {
+          if (!tags) return null;
+          
+          if (Array.isArray(tags) && tags.length === 0) return null;
+          
+          if (typeof tags === 'object' && tags !== null && !Array.isArray(tags)) {
+              const arabicTags = tags.ar || [];
+              const englishTags = tags.en || [];
+              
+              if (arabicTags.length === 0 && englishTags.length === 0) return null;
+              
+              const allTags = [...arabicTags, ...englishTags].slice(0, 4);
+              
+              return allTags.map((tag, idx) => (
+                  <span 
+                      key={`tag-${idx}`} 
+                      className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
+                      title={tag}
+                  >
+                      {tag}
+                  </span>
+              ));
+          }
+          
+          if (Array.isArray(tags)) {
+              if (tags.length === 0) return null;
+              return tags.slice(0, 4).map((tag, idx) => (
+                  <span 
+                      key={idx} 
+                      className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
+                      title={tag}
+                  >
+                      {tag}
+                  </span>
+              ));
+          }
+          
+          if (typeof tags === 'string') {
+              if (tags === '' || tags === '{"en":"","ar":""}' || tags === '[]') return null;
+              
+              try {
+                  const parsed = JSON.parse(tags);
+                  if (Array.isArray(parsed)) {
+                      if (parsed.length === 0) return null;
+                      return parsed.slice(0, 4).map((tag, idx) => (
+                          <span 
+                              key={idx} 
+                              className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
+                              title={tag}
+                          >
+                              {tag}
+                          </span>
+                      ));
+                  }
+              } catch (e) {
+                  const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+                  if (tagsArray.length === 0) return null;
+                  return tagsArray.slice(0, 4).map((tag, idx) => (
+                      <span 
+                          key={idx} 
+                          className="bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200"
+                          title={tag}
+                      >
+                          {tag}
+                      </span>
+                  ));
+              }
+          }
+          
+          return null;
+      }, []);
 
-    // دالة للحصول على أيقونة الصفحة
-    const getPageTypeIcon = useCallback((pageType) => {
-        const type = pageType || "portfolio";
-        switch(type) {
-            case "admin":
-                return { name: "صفحة الإدارة", color: "bg-purple-600 text-purple-700" };
-            case "portfolio":
-            default:
-                return { name: "صفحة المعرض", color: "bg-blue-600 text-blue-700" };
-        }
-    }, []);
+      // دالة للحصول على أيقونة الصفحة
+      const getPageTypeIcon = useCallback((pageType) => {
+          const type = pageType || "portfolio";
+          switch(type) {
+              case "admin":
+                  return { name: "صفحة الإدارة", color: "bg-purple-600 text-purple-700" };
+              case "portfolio":
+              default:
+                  return { name: "صفحة المعرض", color: "bg-blue-600 text-blue-700" };
+          }
+      }, []);
 
-    // التحقق من وجود أي فلتر نشط
-    const hasActiveFilters = useMemo(() => {
-        return searchTerm !== "" ||
-               filterStatus !== "all" ||
-               filterPageType !== "all" ||
-               filterYear !== "all";
-    }, [searchTerm, filterStatus, filterPageType, filterYear]);
+      // التحقق من وجود أي فلتر نشط
+      const hasActiveFilters = useMemo(() => {
+          return searchTerm !== "" ||
+                filterStatus !== "all" ||
+                filterPageType !== "all" ||
+                filterYear !== "all";
+      }, [searchTerm, filterStatus, filterPageType, filterYear]);
 
-    return (
-        <div className="space-y-4 sm:space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-0">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">إدارة المشاريع</h1>
-                        <p className="text-slate-600 text-sm">إدارة معرض المشاريع وعرضها وتعديلها</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2 sm:gap-4">
-                        <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 sm:px-4 py-3">
-                            <div className="text-xs text-slate-500">الإجمالي</div>
-                            <div className="text-lg sm:text-xl font-bold text-slate-900">{stats.total}</div>
-                        </div>
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 sm:px-4 py-3">
-                            <div className="text-xs text-emerald-600">النشطة</div>
-                            <div className="text-lg sm:text-xl font-bold text-emerald-700">{stats.active}</div>
-                        </div>
-                        <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 sm:px-4 py-3">
-                            <div className="text-xs text-orange-600">غير النشطة</div>
-                            <div className="text-lg sm:text-xl font-bold text-orange-700">{stats.inactive}</div>
-                        </div>
-                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 sm:px-4 py-3">
-                            <div className="text-xs text-indigo-600">المميزة</div>
-                            <div className="text-lg sm:text-xl font-bold text-indigo-700">{stats.featured}</div>
-                        </div>
-                    </div>
-                </div>
-                
-                {/* إحصائيات الصفحات */}
-                <div className="flex flex-wrap gap-2 sm:gap-4 mt-4 pt-4 border-t border-slate-100">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 sm:px-4 py-2">
-                        <div className="flex items-center gap-2">
-                            <div className="text-xs text-blue-600">صفحة المعرض</div>
-                            <div className="text-lg font-bold text-blue-700">{stats.portfolio}</div>
-                        </div>
-                    </div>
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 sm:px-4 py-2">
-                        <div className="flex items-center gap-2">
-                            <div className="text-xs text-purple-600">صفحة الإدارة</div>
-                            <div className="text-lg font-bold text-purple-700">{stats.admin}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      return (
+          <div className="space-y-4 sm:space-y-6">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-0">
+                      <div>
+                          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">إدارة المشاريع</h1>
+                          <p className="text-slate-600 text-sm">إدارة معرض المشاريع وعرضها وتعديلها</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 sm:gap-4">
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 sm:px-4 py-3">
+                              <div className="text-xs text-slate-500">الإجمالي</div>
+                              <div className="text-lg sm:text-xl font-bold text-slate-900">{stats.total}</div>
+                          </div>
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 sm:px-4 py-3">
+                              <div className="text-xs text-emerald-600">النشطة</div>
+                              <div className="text-lg sm:text-xl font-bold text-emerald-700">{stats.active}</div>
+                          </div>
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 sm:px-4 py-3">
+                              <div className="text-xs text-orange-600">غير النشطة</div>
+                              <div className="text-lg sm:text-xl font-bold text-orange-700">{stats.inactive}</div>
+                          </div>
+                          <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 sm:px-4 py-3">
+                              <div className="text-xs text-indigo-600">المميزة</div>
+                              <div className="text-lg sm:text-xl font-bold text-indigo-700">{stats.featured}</div>
+                          </div>
+                      </div>
+                  </div>
+                  
+                  {/* إحصائيات الصفحات */}
+                  <div className="flex flex-wrap gap-2 sm:gap-4 mt-4 pt-4 border-t border-slate-100">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 sm:px-4 py-2">
+                          <div className="flex items-center gap-2">
+                              <div className="text-xs text-blue-600">صفحة المعرض</div>
+                              <div className="text-lg font-bold text-blue-700">{stats.portfolio}</div>
+                          </div>
+                      </div>
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 sm:px-4 py-2">
+                          <div className="flex items-center gap-2">
+                              <div className="text-xs text-purple-600">صفحة الإدارة</div>
+                              <div className="text-lg font-bold text-purple-700">{stats.admin}</div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="ابحث عن أي شيء في المشاريع (اسم، نوع، غرفة، نمط، سنة، لون...)"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full p-3 pr-12 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900"
-                            />
-                            <div className="absolute left-3 top-3 text-slate-400">
-                                <IconInfo className="w-5 h-5" />
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-3">
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
-                        >
-                            <option value="all">جميع المشاريع</option>
-                            <option value="active">النشطة فقط</option>
-                            <option value="inactive">غير النشطة</option>
-                            <option value="featured">المميزة فقط</option>
-                        </select>
-                        
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
-                        >
-                            <option value="newest">الأحدث أولاً</option>
-                            <option value="oldest">الأقدم أولاً</option>
-                            <option value="name-asc">الاسم (أ-ي)</option>
-                            <option value="name-desc">الاسم (ي-أ)</option>
-                            <option value="year-newest">السنة (الأحدث)</option>
-                            <option value="year-oldest">السنة (الأقدم)</option>
-                        </select>
-                    </div>
-                </div>
-                
-                {/* قسم الفلاتر المبسطة */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label className="block text-xs text-slate-500 mb-2">الصفحة المعروض فيها</label>
-                        <select
-                            value={filterPageType}
-                            onChange={(e) => setFilterPageType(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
-                        >
-                            {pageTypeOptions.map(option => (
-                                <option key={option.id} value={option.id}>
-                                    {option.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-xs text-slate-500 mb-2">السنة</label>
-                        <select
-                            value={filterYear}
-                            onChange={(e) => setFilterYear(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
-                        >
-                            {yearOptions.map(option => (
-                                <option key={option.id} value={option.id}>{option.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                
-                {/* زر إعادة تعيين فقط */}
-                <div className="flex justify-end gap-3 mb-6">
-                    {hasActiveFilters && (
-                        <button
-                            onClick={resetFilters}
-                            className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-all duration-200 text-sm font-medium"
-                        >
-                            إعادة تعيين
-                        </button>
-                    )}
-                    
-                    {userData?.role !== "viewer" && (
-                        <button
-                            onClick={handleAddProjectClick}
-                            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center text-sm"
-                        >
-                            <IconPlus className="ml-2 w-5 h-5" />
-                            إضافة مشروع جديد
-                        </button>
-                    )}
-                </div>
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                      <div className="flex-1">
+                          <div className="relative">
+                              <input
+                                  type="text"
+                                  placeholder="ابحث عن أي شيء في المشاريع (اسم، نوع، غرفة، نمط، سنة، لون...)"
+                                  value={searchTerm}
+                                  onChange={(e) => setSearchTerm(e.target.value)}
+                                  className="w-full p-3 pr-12 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900"
+                              />
+                              <div className="absolute left-3 top-3 text-slate-400">
+                                  <IconInfo className="w-5 h-5" />
+                              </div>
+                          </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-3">
+                          <select
+                              value={filterStatus}
+                              onChange={(e) => setFilterStatus(e.target.value)}
+                              className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
+                          >
+                              <option value="all">جميع المشاريع</option>
+                              <option value="active">النشطة فقط</option>
+                              <option value="inactive">غير النشطة</option>
+                              <option value="featured">المميزة فقط</option>
+                          </select>
+                          
+                          <select
+                              value={sortBy}
+                              onChange={(e) => setSortBy(e.target.value)}
+                              className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
+                          >
+                              <option value="newest">الأحدث أولاً</option>
+                              <option value="oldest">الأقدم أولاً</option>
+                              <option value="name-asc">الاسم (أ-ي)</option>
+                              <option value="name-desc">الاسم (ي-أ)</option>
+                              <option value="year-newest">السنة (الأحدث)</option>
+                              <option value="year-oldest">السنة (الأقدم)</option>
+                          </select>
+                      </div>
+                  </div>
+                  
+                  {/* قسم الفلاتر المبسطة */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                      <div>
+                          <label className="block text-xs text-slate-500 mb-2">الصفحة المعروض فيها</label>
+                          <select
+                              value={filterPageType}
+                              onChange={(e) => setFilterPageType(e.target.value)}
+                              className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
+                          >
+                              {pageTypeOptions.map(option => (
+                                  <option key={option.id} value={option.id}>
+                                      {option.name}
+                                  </option>
+                              ))}
+                          </select>
+                      </div>
+                      
+                      <div>
+                          <label className="block text-xs text-slate-500 mb-2">السنة</label>
+                          <select
+                              value={filterYear}
+                              onChange={(e) => setFilterYear(e.target.value)}
+                              className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-all duration-200 text-sm text-slate-900 bg-white"
+                          >
+                              {yearOptions.map(option => (
+                                  <option key={option.id} value={option.id}>{option.name}</option>
+                              ))}
+                          </select>
+                      </div>
+                  </div>
+                  
+                  {/* زر إعادة تعيين فقط */}
+                  <div className="flex justify-end gap-3 mb-6">
+                      {hasActiveFilters && (
+                          <button
+                              onClick={resetFilters}
+                              className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-all duration-200 text-sm font-medium"
+                          >
+                              إعادة تعيين
+                          </button>
+                      )}
+                      
+                      {userData?.role !== "viewer" && (
+                          <button
+                              onClick={handleAddProjectClick}
+                              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center text-sm"
+                          >
+                              <IconPlus className="ml-2 w-5 h-5" />
+                              إضافة مشروع جديد
+                          </button>
+                      )}
+                  </div>
 
-                {/* عرض عدد النتائج */}
-                {hasActiveFilters && (
-                    <div className="mb-4 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
-                        تم العثور على {filteredProjects.length} نتيجة من أصل {stats.total} مشروع
-                    </div>
-                )}
+                  {/* عرض عدد النتائج */}
+                  {hasActiveFilters && (
+                      <div className="mb-4 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                          تم العثور على {filteredProjects.length} نتيجة من أصل {stats.total} مشروع
+                      </div>
+                  )}
 
-                {filteredProjects.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                        {filteredProjects.map((project) => {
-                            const projectName = safeStringify(project.projectName || project.title, '');
-                            const description = safeStringify(project.briefDescription || project.description, '');
-                            const categoryString = getCategoryString(project.category);
-                            const pageTypeInfo = getPageTypeIcon(project.pageType);
-                            
-                            const mainImage = project.coverImage || project.mainImage || "https://via.placeholder.com/400x250?text=Project";
-                            const area = project.projectArea || project.area || "غير محدد";
-                            const year = project.projectYear || project.year || "بدون تاريخ";
-                            const location = project.projectLocation || project.location || "غير محدد";
-                            
-                            return (
-                                <div 
-                                    key={project.id} 
-                                    className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
-                                    onClick={() => handleProjectClick(project.id)}
-                                >
-                                    <div className="relative h-40 sm:h-48 overflow-hidden">
-                                        <img 
-                                            src={mainImage} 
-                                            alt={projectName || "مشروع"}
-                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                            loading="lazy"
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = "https://via.placeholder.com/400x250?text=Project";
-                                            }}
-                                        />
-                                        
-                                        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/50 to-transparent p-3 sm:p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex flex-wrap gap-1 sm:gap-2">
-                                                    {project.isFeatured && (
-                                                        <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block">
-                                                            مميز
-                                                        </span>
-                                                    )}
-                                                    {project.isActive ? (
-                                                        <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block">
-                                                            نشط
-                                                        </span>
-                                                    ) : (
-                                                        <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block">
-                                                            غير نشط
-                                                        </span>
-                                                    )}
-                                                    {/* عرض الصفحة التي يظهر فيها المشروع */}
-                                                    <span className={`${pageTypeInfo.color} text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block`}>
-                                                        {pageTypeInfo.name}
-                                                    </span>
-                                                </div>
-                                                <span className="bg-white/90 text-slate-800 text-xs px-2 sm:px-3 py-1 rounded-full">
-                                                    {year}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 sm:p-4">
-                                            <h3 className="text-white font-bold text-base sm:text-lg truncate">
-                                                {projectName || "بدون عنوان"}
-                                            </h3>
-                                            <p className="text-white/90 text-xs sm:text-sm mt-1 truncate">
-                                                {categoryString || area}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="p-4 sm:p-6">
-                                        <p className="text-slate-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 min-h-[40px]">
-                                            {description || "لا يوجد وصف"}
-                                        </p>
-                                        {/* عرض التصنيفات المحددة */}
-                                        <div className="mb-3">
-                                            {project.category?.mainCategory && (
-                                                <div className="flex items-center mb-2">
-                                                    <span className="text-xs text-slate-600 ml-2 w-20">النوع:</span>
-                                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                                        {getMainCategoryName(project.category.mainCategory)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            
-                                            {project.category?.subCategory && (
-                                                <div className="flex items-center mb-2">
-                                                    <span className="text-xs text-slate-600 ml-2 w-20">الفرعي:</span>
-                                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                                                        {getSubCategoryName(project.category.subCategory, project.category.mainCategory)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            
-                                            {project.category?.specialization && (
-                                                <div className="flex items-center mb-2">
-                                                    <span className="text-xs text-slate-600 ml-2 w-20">التخصص:</span>
-                                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                                                        {getSpecializationName(project.category.specialization)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        {/* عرض الغرف الداخلية */}
-                                        {project.category?.interiorRooms && project.category.interiorRooms.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs text-slate-600 ml-2">الغرف الداخلية:</span>
-                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                    {project.category.interiorRooms.slice(0, 3).map((room, idx) => (
-                                                        <span key={idx} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
-                                                            {getInteriorRoomName(room)}
-                                                        </span>
-                                                    ))}
-                                                    {project.category.interiorRooms.length > 3 && (
-                                                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
-                                                            +{project.category.interiorRooms.length - 3}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {/* عرض الغرف التجارية */}
-                                        {project.category?.commercialRooms && project.category.commercialRooms.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs text-slate-600 ml-2">الغرف التجارية:</span>
-                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                    {project.category.commercialRooms.slice(0, 3).map((room, idx) => (
-                                                        <span key={idx} className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
-                                                            {getCommercialRoomName(room)}
-                                                        </span>
-                                                    ))}
-                                                    {project.category.commercialRooms.length > 3 && (
-                                                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
-                                                            +{project.category.commercialRooms.length - 3}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {/* عرض الأماكن الخارجية */}
-                                        {project.category?.exteriorAreas && project.category.exteriorAreas.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs text-slate-600 ml-2">الخارجية:</span>
-                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                    {project.category.exteriorAreas.slice(0, 3).map((area, idx) => (
-                                                        <span key={idx} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                                                            {getExteriorAreaName(area)}
-                                                        </span>
-                                                    ))}
-                                                    {project.category.exteriorAreas.length > 3 && (
-                                                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                                                            +{project.category.exteriorAreas.length - 3}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {/* عرض أنماط التصميم */}
-                                        {project.category?.designStyles && project.category.designStyles.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs text-slate-600 ml-2">الأنماط:</span>
-                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                    {project.category.designStyles.slice(0, 3).map((style, idx) => (
-                                                        <span key={idx} className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
-                                                            {getDesignStyleName(style)}
-                                                        </span>
-                                                    ))}
-                                                    {project.category.designStyles.length > 3 && (
-                                                        <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
-                                                            +{project.category.designStyles.length - 3}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        <div className="mb-3 sm:mb-4">
-                                            <div className="flex items-center mb-2">
-                                                <IconTag className="w-4 h-4 ml-2 text-slate-400" />
-                                                <span className="text-xs text-slate-600">الوسوم:</span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1 sm:gap-2 min-h-[28px]">
-                                                {renderTags(project.tags) || (
-                                                    <span className="text-xs text-slate-400 italic">لا توجد وسوم</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        
-                                        {project.selectedColors?.length > 0 && (
-                                            <div className="flex items-center mb-3 sm:mb-4">
-                                                <span className="text-xs text-slate-600 ml-2">الألوان:</span>
-                                                <div className="flex gap-1 sm:gap-2">
-                                                    {project.selectedColors.slice(0, 4).map((color, idx) => (
-                                                        <div 
-                                                            key={idx}
-                                                            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-slate-200 shadow-sm"
-                                                            style={{ backgroundColor: color }}
-                                                            title={color}
-                                                        />
-                                                    ))}
-                                                    {project.selectedColors.length > 4 && (
-                                                        <span className="text-xs text-slate-500">
-                                                            +{project.selectedColors.length - 4}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
-                                            <div className="bg-slate-50 rounded-lg p-2">
-                                                <div className="text-xs text-slate-500">المساحة</div>
-                                                <div className="text-sm font-medium text-slate-900">
-                                                    {area}
-                                                </div>
-                                            </div>
-                                            <div className="bg-slate-50 rounded-lg p-2">
-                                                <div className="text-xs text-slate-500">الموقع</div>
-                                                <div className="text-sm font-medium text-slate-900 truncate">
-                                                    {location}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-slate-100 pt-3 sm:pt-4 gap-2 sm:gap-0">
-                                            <div className="text-xs sm:text-sm text-slate-500 truncate flex items-center">
-                                                <IconMapPin className="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-slate-400" />
-                                                {location}
-                                            </div>
-                                            <div className="flex gap-1 sm:gap-2" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    onClick={() => handleEditProject(project)}
-                                                    className="p-1.5 sm:p-2 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded-lg transition-colors"
-                                                    disabled={userData?.role === "viewer"}
-                                                    title="تعديل"
-                                                >
-                                                    <IconEdit className="w-4 h-4 sm:w-5 sm:h-5" />
-                                                </button>
-                                                {userData?.role !== "viewer" && (
-                                                    <button
-                                                        onClick={() => toggleProjectStatus(project.id, project.isActive, projectName || "المشروع")}
-                                                        className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                                                            project.isActive 
-                                                                ? "text-orange-600 hover:text-orange-800 hover:bg-orange-50" 
-                                                                : "text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50"
-                                                        }`}
-                                                        title={project.isActive ? "تعطيل" : "تفعيل"}
-                                                    >
-                                                        {project.isActive ? <IconEyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <IconEye className="w-4 h-4 sm:w-5 sm:h-5" />}
-                                                    </button>
-                                                )}
-                                                {userData?.role !== "viewer" && (
-                                                    <button
-                                                        onClick={() => toggleFeatured("portfolioProjects", project.id, project.isFeatured, projectName || "المشروع", "مشروع")}
-                                                        className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                                                            project.isFeatured 
-                                                                ? "text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50" 
-                                                                : "text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-                                                        }`}
-                                                        title={project.isFeatured ? "إلغاء التميز" : "تمييز"}
-                                                    >
-                                                        <IconStar className="w-4 h-4 sm:w-5 sm:h-5" />
-                                                    </button>
-                                                )}
-                                                {(userData?.role === "editor" || userData?.role === "admin") && (
-                                                    <button
-                                                        onClick={() => handleDelete("portfolioProjects", project.id, projectName || "المشروع")}
-                                                        className="p-1.5 sm:p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title="حذف"
-                                                    >
-                                                        <IconTrash className="w-4 h-4 sm:w-5 sm:h-5" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className="text-center py-12">
-                        <IconImage className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                        <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                            {hasActiveFilters ? "لم يتم العثور على مشاريع" : "لا توجد مشاريع"}
-                        </h3>
-                        <p className="text-slate-500 mb-6">
-                            {hasActiveFilters
-                                ? "جرب تغيير كلمات البحث أو إزالة المرشحات" 
-                                : "لم يتم إضافة أي مشاريع بعد"}
-                        </p>
-                        {userData?.role !== "viewer" && !hasActiveFilters && (
-                            <button
-                                onClick={handleAddProjectClick}
-                                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center mx-auto text-sm"
-                            >
-                                <IconPlus className="ml-2 w-5 h-5" />
-                                إضافة أول مشروع
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
+                  {filteredProjects.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                          {filteredProjects.map((project) => {
+                              const projectName = safeStringify(project.projectName || project.title, '');
+                              const description = safeStringify(project.briefDescription || project.description, '');
+                              const categoryString = getCategoryString(project.category);
+                              const pageTypeInfo = getPageTypeIcon(project.pageType);
+                              
+                              const mainImage = project.coverImage || project.mainImage || "https://via.placeholder.com/400x250?text=Project";
+                              const area = project.projectArea || project.area || "غير محدد";
+                              const year = project.projectYear || project.year || "بدون تاريخ";
+                              const location = project.projectLocation || project.location || "غير محدد";
+                              
+                              return (
+                                  <div 
+                                      key={project.id} 
+                                      className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
+                                      onClick={() => handleProjectClick(project)}
+                                  >
+                                      <div className="relative h-40 sm:h-48 overflow-hidden">
+                                          <img 
+                                              src={mainImage} 
+                                              alt={projectName || "مشروع"}
+                                              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                                              loading="lazy"
+                                              onError={(e) => {
+                                                  e.target.onerror = null;
+                                                  e.target.src = "https://via.placeholder.com/400x250?text=Project";
+                                              }}
+                                          />
+                                          
+                                          <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/50 to-transparent p-3 sm:p-4">
+                                              <div className="flex justify-between items-start">
+                                                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                                                      {project.isFeatured && (
+                                                          <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block">
+                                                              مميز
+                                                          </span>
+                                                      )}
+                                                      {project.isActive ? (
+                                                          <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block">
+                                                              نشط
+                                                          </span>
+                                                      ) : (
+                                                          <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block">
+                                                              غير نشط
+                                                          </span>
+                                                      )}
+                                                      {/* عرض الصفحة التي يظهر فيها المشروع */}
+                                                      <span className={`${pageTypeInfo.color} text-white text-xs px-2 sm:px-3 py-1 rounded-full mb-1 sm:mb-2 inline-block`}>
+                                                          {pageTypeInfo.name}
+                                                      </span>
+                                                  </div>
+                                                  <span className="bg-white/90 text-slate-800 text-xs px-2 sm:px-3 py-1 rounded-full">
+                                                      {year}
+                                                  </span>
+                                              </div>
+                                          </div>
+                                          
+                                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 sm:p-4">
+                                              <h3 className="text-white font-bold text-base sm:text-lg truncate">
+                                                  {projectName || "بدون عنوان"}
+                                              </h3>
+                                              <p className="text-white/90 text-xs sm:text-sm mt-1 truncate">
+                                                  {categoryString || area}
+                                              </p>
+                                          </div>
+                                      </div>
+                                      
+                                      <div className="p-4 sm:p-6">
+                                          <p className="text-slate-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 min-h-[40px]">
+                                              {description || "لا يوجد وصف"}
+                                          </p>
+                                          {/* عرض التصنيفات المحددة */}
+                                          <div className="mb-3">
+                                              {project.category?.mainCategory && (
+                                                  <div className="flex items-center mb-2">
+                                                      <span className="text-xs text-slate-600 ml-2 w-20">النوع:</span>
+                                                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                                          {getMainCategoryName(project.category.mainCategory)}
+                                                      </span>
+                                                  </div>
+                                              )}
+                                              
+                                              {project.category?.subCategory && (
+                                                  <div className="flex items-center mb-2">
+                                                      <span className="text-xs text-slate-600 ml-2 w-20">الفرعي:</span>
+                                                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                                          {getSubCategoryName(project.category.subCategory, project.category.mainCategory)}
+                                                      </span>
+                                                  </div>
+                                              )}
+                                              
+                                              {project.category?.specialization && (
+                                                  <div className="flex items-center mb-2">
+                                                      <span className="text-xs text-slate-600 ml-2 w-20">التخصص:</span>
+                                                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                                                          {getSpecializationName(project.category.specialization)}
+                                                      </span>
+                                                  </div>
+                                              )}
+                                          </div>
+                                          
+                                          {/* عرض الغرف الداخلية */}
+                                          {project.category?.interiorRooms && project.category.interiorRooms.length > 0 && (
+                                              <div className="mb-3">
+                                                  <span className="text-xs text-slate-600 ml-2">الغرف الداخلية:</span>
+                                                  <div className="flex flex-wrap gap-1 mt-1">
+                                                      {project.category.interiorRooms.slice(0, 3).map((room, idx) => (
+                                                          <span key={idx} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
+                                                              {getInteriorRoomName(room)}
+                                                          </span>
+                                                      ))}
+                                                      {project.category.interiorRooms.length > 3 && (
+                                                          <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
+                                                              +{project.category.interiorRooms.length - 3}
+                                                          </span>
+                                                      )}
+                                                  </div>
+                                              </div>
+                                          )}
+                                          
+                                          {/* عرض الغرف التجارية */}
+                                          {project.category?.commercialRooms && project.category.commercialRooms.length > 0 && (
+                                              <div className="mb-3">
+                                                  <span className="text-xs text-slate-600 ml-2">الغرف التجارية:</span>
+                                                  <div className="flex flex-wrap gap-1 mt-1">
+                                                      {project.category.commercialRooms.slice(0, 3).map((room, idx) => (
+                                                          <span key={idx} className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                                                              {getCommercialRoomName(room)}
+                                                          </span>
+                                                      ))}
+                                                      {project.category.commercialRooms.length > 3 && (
+                                                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                                                              +{project.category.commercialRooms.length - 3}
+                                                          </span>
+                                                      )}
+                                                  </div>
+                                              </div>
+                                          )}
+                                          
+                                          {/* عرض الأماكن الخارجية */}
+                                          {project.category?.exteriorAreas && project.category.exteriorAreas.length > 0 && (
+                                              <div className="mb-3">
+                                                  <span className="text-xs text-slate-600 ml-2">الخارجية:</span>
+                                                  <div className="flex flex-wrap gap-1 mt-1">
+                                                      {project.category.exteriorAreas.slice(0, 3).map((area, idx) => (
+                                                          <span key={idx} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                                                              {getExteriorAreaName(area)}
+                                                          </span>
+                                                      ))}
+                                                      {project.category.exteriorAreas.length > 3 && (
+                                                          <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                                                              +{project.category.exteriorAreas.length - 3}
+                                                          </span>
+                                                      )}
+                                                  </div>
+                                              </div>
+                                          )}
+                                          
+                                          {/* عرض أنماط التصميم */}
+                                          {project.category?.designStyles && project.category.designStyles.length > 0 && (
+                                              <div className="mb-3">
+                                                  <span className="text-xs text-slate-600 ml-2">الأنماط:</span>
+                                                  <div className="flex flex-wrap gap-1 mt-1">
+                                                      {project.category.designStyles.slice(0, 3).map((style, idx) => (
+                                                          <span key={idx} className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
+                                                              {getDesignStyleName(style)}
+                                                          </span>
+                                                      ))}
+                                                      {project.category.designStyles.length > 3 && (
+                                                          <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
+                                                              +{project.category.designStyles.length - 3}
+                                                          </span>
+                                                      )}
+                                                  </div>
+                                              </div>
+                                          )}
+                                          
+                                          <div className="mb-3 sm:mb-4">
+                                              <div className="flex items-center mb-2">
+                                                  <IconTag className="w-4 h-4 ml-2 text-slate-400" />
+                                                  <span className="text-xs text-slate-600">الوسوم:</span>
+                                              </div>
+                                              <div className="flex flex-wrap gap-1 sm:gap-2 min-h-[28px]">
+                                                  {renderTags(project.tags) || (
+                                                      <span className="text-xs text-slate-400 italic">لا توجد وسوم</span>
+                                                  )}
+                                              </div>
+                                          </div>
+                                          
+                                          {project.selectedColors?.length > 0 && (
+                                              <div className="flex items-center mb-3 sm:mb-4">
+                                                  <span className="text-xs text-slate-600 ml-2">الألوان:</span>
+                                                  <div className="flex gap-1 sm:gap-2">
+                                                      {project.selectedColors.slice(0, 4).map((color, idx) => (
+                                                          <div 
+                                                              key={idx}
+                                                              className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-slate-200 shadow-sm"
+                                                              style={{ backgroundColor: color }}
+                                                              title={color}
+                                                          />
+                                                      ))}
+                                                      {project.selectedColors.length > 4 && (
+                                                          <span className="text-xs text-slate-500">
+                                                              +{project.selectedColors.length - 4}
+                                                          </span>
+                                                      )}
+                                                  </div>
+                                              </div>
+                                          )}
+                                          
+                                          <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
+                                              <div className="bg-slate-50 rounded-lg p-2">
+                                                  <div className="text-xs text-slate-500">المساحة</div>
+                                                  <div className="text-sm font-medium text-slate-900">
+                                                      {area}
+                                                  </div>
+                                              </div>
+                                              <div className="bg-slate-50 rounded-lg p-2">
+                                                  <div className="text-xs text-slate-500">الموقع</div>
+                                                  <div className="text-sm font-medium text-slate-900 truncate">
+                                                      {location}
+                                                  </div>
+                                              </div>
+                                          </div>
+                                          
+                                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-slate-100 pt-3 sm:pt-4 gap-2 sm:gap-0">
+                                              <div className="text-xs sm:text-sm text-slate-500 truncate flex items-center">
+                                                  <IconMapPin className="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-slate-400" />
+                                                  {location}
+                                              </div>
+                                              <div className="flex gap-1 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+                                                  <button
+                                                      onClick={() => handleEditProject(project)}
+                                                      className="p-1.5 sm:p-2 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded-lg transition-colors"
+                                                      disabled={userData?.role === "viewer"}
+                                                      title="تعديل"
+                                                  >
+                                                      <IconEdit className="w-4 h-4 sm:w-5 sm:h-5" />
+                                                  </button>
+                                                  {userData?.role !== "viewer" && (
+                                                      <button
+                                                          onClick={() => toggleProjectStatus(project.id, project.isActive, projectName || "المشروع")}
+                                                          className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
+                                                              project.isActive 
+                                                                  ? "text-orange-600 hover:text-orange-800 hover:bg-orange-50" 
+                                                                  : "text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50"
+                                                          }`}
+                                                          title={project.isActive ? "تعطيل" : "تفعيل"}
+                                                      >
+                                                          {project.isActive ? <IconEyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <IconEye className="w-4 h-4 sm:w-5 sm:h-5" />}
+                                                      </button>
+                                                  )}
+                                                  {userData?.role !== "viewer" && (
+                                                      <button
+                                                          onClick={() => toggleFeatured("portfolioProjects", project.id, project.isFeatured, projectName || "المشروع", "مشروع")}
+                                                          className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
+                                                              project.isFeatured 
+                                                                  ? "text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50" 
+                                                                  : "text-slate-600 hover:text-slate-800 hover:bg-slate-50"
+                                                          }`}
+                                                          title={project.isFeatured ? "إلغاء التميز" : "تمييز"}
+                                                      >
+                                                          <IconStar className="w-4 h-4 sm:w-5 sm:h-5" />
+                                                      </button>
+                                                  )}
+                                                  {(userData?.role === "editor" || userData?.role === "admin") && (
+                                                      <button
+                                                          onClick={() => handleDelete("portfolioProjects", project.id, projectName || "المشروع")}
+                                                          className="p-1.5 sm:p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                                                          title="حذف"
+                                                      >
+                                                          <IconTrash className="w-4 h-4 sm:w-5 sm:h-5" />
+                                                      </button>
+                                                  )}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </div>
+                  ) : (
+                      <div className="text-center py-12">
+                          <IconImage className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                          <h3 className="text-lg font-semibold text-slate-600 mb-2">
+                              {hasActiveFilters ? "لم يتم العثور على مشاريع" : "لا توجد مشاريع"}
+                          </h3>
+                          <p className="text-slate-500 mb-6">
+                              {hasActiveFilters
+                                  ? "جرب تغيير كلمات البحث أو إزالة المرشحات" 
+                                  : "لم يتم إضافة أي مشاريع بعد"}
+                          </p>
+                          {userData?.role !== "viewer" && !hasActiveFilters && (
+                              <button
+                                  onClick={handleAddProjectClick}
+                                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center mx-auto text-sm"
+                              >
+                                  <IconPlus className="ml-2 w-5 h-5" />
+                                  إضافة أول مشروع
+                              </button>
+                          )}
+                      </div>
+                  )}
+              </div>
+              
+              {/* ✅ إضافة نافذة عرض المشروع باستخدام ProjectModal.ViewModal */}
+              {selectedViewProject && (
+                  <ProjectModal.ViewModal
+                      project={selectedViewProject}
+                      onClose={closeProjectView}
+                  />
+              )}
+          </div>
+      );
+  }
 
   function ServicesTabContent() {
       const [searchTerm, setSearchTerm] = useState("");

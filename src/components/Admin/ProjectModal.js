@@ -193,7 +193,7 @@ const EnhancedLightbox = ({
   
   const goToPrev = () => {
     setCurrentIndex(prev => {
-      const newIndex = prev === 0 ? media.length - 1 : prev - 1;
+      const newIndex = prev === media.length - 1 ? 0 : prev + 1;
       setImageLoaded(false);
       setIsZoomed(false);
       return newIndex;
@@ -202,7 +202,7 @@ const EnhancedLightbox = ({
   
   const goToNext = () => {
     setCurrentIndex(prev => {
-      const newIndex = prev === media.length - 1 ? 0 : prev + 1;
+      const newIndex = prev === 0 ? media.length - 1 : prev - 1;
       setImageLoaded(false);
       setIsZoomed(false);
       return newIndex;
@@ -481,13 +481,31 @@ const EnhancedLightbox = ({
   );
 };
 
-// ==================== مكون عرض المشروع ====================
 const ProjectViewModal = ({ project, onClose }) => {
   const [activeImage, setActiveImage] = useState(project.coverImage || project.mainImage || "");
   const [activeTab, setActiveTab] = useState('overview');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  // دالة للتحقق من أن الرابط دائم
+  const isPermanentUrl = useCallback((url) => {
+    if (!url) return false;
+    return (
+      url.startsWith('http') || 
+      url.startsWith('/uploads/') ||
+      url.startsWith('data:image/') ||
+      url.startsWith('data:video/')
+    );
+  }, []);
+  
+  // منع التمرير في الخلفية عند فتح المودال
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
   
   // كشف حجم الشاشة
   useEffect(() => {
@@ -542,10 +560,10 @@ const ProjectViewModal = ({ project, onClose }) => {
         { id: "interior", name: { ar: "داخلي", en: "Interior" } },
         { id: "exterior", name: { ar: "خارجي", en: "Exterior" } },
         { id: "landscape", name: { ar: "لاندسكيب", en: "Landscape" } },
-        { id: "both", name: { ar: "داخلي وخارجي", en: "Interior & Exterior" } }
+        { id: "both", name: { ar: "داخلي وخارجي", en: "Interior and Exterior" } }
       ]
     },
-    // أنواع الغرف الداخلية (تم التحديث بإضافة الغرف الجديدة)
+    // أنواع الغرف الداخلية
     { 
       id: "interior_rooms", 
       name: { ar: "الغرف الداخلية", en: "Interior Rooms" },
@@ -570,7 +588,7 @@ const ProjectViewModal = ({ project, onClose }) => {
         { id: "storage_room", name: { ar: "غرفة تخزين", en: "Storage Room" } }
       ]
     },
-    // الغرف التجارية (إضافة جديدة)
+    // الغرف التجارية
     { 
       id: "commercial_rooms", 
       name: { ar: "الغرف التجارية", en: "Commercial Rooms" },
@@ -676,26 +694,15 @@ const ProjectViewModal = ({ project, onClose }) => {
     });
     
     return media;
-  }, [project]);
+  }, [project, isPermanentUrl]);
 
-  // دالة للتحقق من أن الرابط دائم
-  const isPermanentUrl = (url) => {
-    if (!url) return false;
-    return (
-      url.startsWith('http') || 
-      url.startsWith('/uploads/') ||
-      url.startsWith('data:image/') ||
-      url.startsWith('data:video/')
-    );
-  };
-  
   // تبويبات العرض
   const tabs = useMemo(() => [
-    { id: 'overview', label: 'نظرة عامة', icon: '🏠' },
-    { id: 'gallery', label: 'معرض الوسائط', icon: '🖼️' },
-    { id: 'details', label: 'التفاصيل', icon: '📋' },
-    { id: 'solutions', label: 'الحلول', icon: '💡' },
-    { id: 'colors', label: 'الألوان', icon: '🎨' }
+    { id: 'overview', label: 'نظرة عامة' },
+    { id: 'gallery', label: 'معرض الوسائط' },
+    { id: 'details', label: 'التفاصيل'},
+    { id: 'solutions', label: 'الحلول' },
+    { id: 'colors', label: 'الألوان'  }
   ], []);
   
   // ==================== دالة مساعدة للحصول على اسم التصنيف الفرعي ====================
@@ -788,8 +795,9 @@ const ProjectViewModal = ({ project, onClose }) => {
   
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-0 sm:p-2 md:p-4 backdrop-blur-sm overflow-y-auto">
-        <div className="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full h-full sm:max-w-6xl sm:w-full sm:max-h-[90vh] overflow-y-auto">
+      {/* خلفية سوداء شفافة تغطي كامل الشاشة */}
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 overflow-y-auto">
+        <div className="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full sm:max-w-6xl sm:w-full sm:max-h-[90vh] overflow-y-auto my-0 sm:my-8 mx-0 sm:mx-4">
           {/* Header */}
           <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 sm:px-8 sm:py-6 flex justify-between items-center z-20">
             <div className="flex-1 min-w-0">
@@ -927,7 +935,12 @@ const ProjectViewModal = ({ project, onClose }) => {
                 <button
                   onClick={() => {
                     setActiveTab('gallery');
-                    window.scrollTo({ top: document.querySelector('.tab-content').offsetTop, behavior: 'smooth' });
+                    setTimeout(() => {
+                      const galleryElement = document.querySelector('.tab-content');
+                      if (galleryElement) {
+                        galleryElement.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }, 100);
                   }}
                   className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-black/50 text-white rounded-lg flex items-center justify-center text-xs sm:text-sm hover:bg-black/70"
                   aria-label="المزيد من الوسائط"
@@ -1084,9 +1097,6 @@ const ProjectViewModal = ({ project, onClose }) => {
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                        <IconZoomIn className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-                      </div>
                       <div>
                         <h3 className="font-bold text-blue-800 text-sm sm:text-base">
                           عرض الوسائط بدقة عالية
@@ -1581,7 +1591,7 @@ const ProjectViewModal = ({ project, onClose }) => {
                             </div>
                             <div>
                               <h4 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
-                                الحل التصميمي #{index + 1}
+                                الحل التصميمي رقم {index + 1}
                               </h4>
                               <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{solution}</p>
                             </div>
