@@ -106,7 +106,12 @@ const IconSettings = ({ className }) => (
 
 const IconZoomIn = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 1114 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      strokeWidth={2} 
+      d="M15.5 15.5L21 21M10 7v6M7 10h6M19 10a9 9 0 11-18 0 9 9 0 0118 0z" 
+    />
   </svg>
 );
 
@@ -157,7 +162,6 @@ const EnhancedLightbox = ({
   const [showControls, setShowControls] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   
   useEffect(() => {
     if (isOpen) {
@@ -233,41 +237,6 @@ const EnhancedLightbox = ({
     }
   };
   
-  const downloadMedia = async () => {
-    if (isDownloading) return;
-    
-    const currentMedia = media[currentIndex];
-    
-    if (isVideo(currentMedia)) {
-      // فتح رابط الفيديو في نافذة جديدة
-      window.open(currentMedia.url, '_blank');
-      return;
-    }
-    
-    try {
-      setIsDownloading(true);
-      const imageUrl = currentMedia.url;
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      
-      // استخراج اسم الملف من الرابط
-      const fileName = imageUrl.split('/').pop() || `project-media-${currentIndex + 1}.jpg`;
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      setTimeout(() => setIsDownloading(false), 1000);
-    } catch (error) {
-      console.error('❌ خطأ في تحميل الملف:', error);
-      setIsDownloading(false);
-    }
-  };
-  
   const handleImageLoad = () => {
     setImageLoaded(true);
   };
@@ -313,36 +282,6 @@ const EnhancedLightbox = ({
         </div>
         
         <div className="flex items-center space-x-2 sm:space-x-3">
-          {!isVideo(currentMedia) && (
-            <button
-              onClick={downloadMedia}
-              disabled={isDownloading}
-              className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="تحميل الملف"
-              title="تحميل الملف"
-            >
-              {isDownloading ? (
-                <svg className="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <IconDownload className="w-5 h-5" />
-              )}
-            </button>
-          )}
-          
-          {!isVideo(currentMedia) && (
-            <button
-              onClick={toggleZoom}
-              className={`p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors ${isZoomed ? 'bg-blue-500/50' : ''}`}
-              aria-label={isZoomed ? "تصغير" : "تكبير"}
-              title={isZoomed ? "تصغير (Z)" : "تكبير (Z)"}
-            >
-              <IconZoomIn className="w-5 h-5" />
-            </button>
-          )}
-          
           <button
             onClick={toggleFullscreen}
             className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
@@ -466,15 +405,6 @@ const EnhancedLightbox = ({
               </button>
             ))}
           </div>
-        </div>
-      </div>
-      
-      {/* معلومات مفيدة */}
-      <div className={`absolute bottom-4 right-4 text-white text-xs opacity-70 transition-opacity duration-300 ${showControls ? 'opacity-70' : 'opacity-0'}`}>
-        <div className="space-y-1">
-          <div>← → للتنقل</div>
-          <div>{isVideo(currentMedia) ? '🎬 فيديو' : 'Z للتكبير/التصغير'} • F لملء الشاشة</div>
-          <div>ESC للإغلاق • انقر لإظهار/إخفاء الأدوات</div>
         </div>
       </div>
     </div>
